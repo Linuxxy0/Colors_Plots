@@ -1,25 +1,30 @@
 import { chartCards } from '@/data/content';
 import { BarChartCard, BoxPlotCard, HeatmapCard, LineChartCard, RadarChartCard, ScatterChartCard } from '@/components/charts';
 import { SectionHeading } from '@/components/ui/SectionHeading';
+import type { DatasetSource } from '@/types/dataset';
 
-const chartMap = {
-  line: <LineChartCard title="Line Chart" compact />,
-  bar: <BarChartCard title="Bar Chart" compact />,
-  heatmap: <HeatmapCard title="Heatmap" compact />,
-  scatter: <ScatterChartCard title="Scatter Plot" compact />,
-  boxplot: <BoxPlotCard title="Boxplot" compact />,
-  radar: <RadarChartCard title="Radar Chart" compact />,
+type Props = {
+  dataset: DatasetSource;
 };
 
-export function ChartGallerySection() {
+export function ChartGallerySection({ dataset }: Props) {
+  const chartMap = {
+    line: <LineChartCard title="Line Chart" compact dataset={dataset} />,
+    bar: <BarChartCard title="Bar Chart" compact dataset={dataset} />,
+    heatmap: <HeatmapCard title="Heatmap" compact dataset={dataset} />,
+    scatter: <ScatterChartCard title="Scatter Plot" compact dataset={dataset} />,
+    boxplot: <BoxPlotCard title="Boxplot" compact dataset={dataset} />,
+    radar: <RadarChartCard title="Radar Chart" compact dataset={dataset} />,
+  };
+
   return (
     <section id="gallery" className="section-shell pt-24">
       <div className="section-inner">
         <SectionHeading
           eyebrow="Chart Gallery"
           title="多元图表展示画廊"
-          description="首页预览覆盖趋势、比较、相关性、分布与多指标分析，后续可继续扩展桑基图、网络图、小提琴图等科研常用图。"
-          action={<a href="#quick-start" className="button-secondary">View All Charts</a>}
+          description="默认加载内置科研数据；上传自己的 CSV / JSON 后，这里的折线图、柱状图、热力图、散点图、箱线图和雷达图都会基于新数据重绘。"
+          action={<a href="#uploader" className="button-secondary">Go To Uploader</a>}
         />
         <div className="mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {chartCards.map((item) => (

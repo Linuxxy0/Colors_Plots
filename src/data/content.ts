@@ -1,6 +1,7 @@
 import { themes } from '@/themes/themes';
 
 export const navItems = [
+  { label: 'Uploader', href: '#uploader' },
   { label: 'Gallery', href: '#gallery' },
   { label: 'Themes', href: '#themes' },
   { label: 'Examples', href: '#dashboard-demo' },
@@ -117,13 +118,18 @@ export const docsColumns = [
 ];
 
 export const quickStartCode = `import { LineChartCard } from '@/components/charts';
+import { createDatasetSource } from '@/utils/dataset';
 
-const data = [{ epoch: 1, acc: 0.71 }, { epoch: 2, acc: 0.8 }];
+const dataset = createDatasetSource([
+  { epoch: 1, accuracy: 71.2 },
+  { epoch: 2, accuracy: 76.8 },
+  { epoch: 3, accuracy: 82.1 },
+]);
 
 export default function Demo() {
   return (
     <section className="glass-card p-6">
-      <LineChartCard compact title="Training Accuracy" />
+      <LineChartCard compact title="Training Accuracy" dataset={dataset} />
     </section>
   );
 }`;

@@ -1,4 +1,5 @@
 export * from './DashboardDemoSection';
+export * from './DataPlaygroundSection';
 export * from './DocsRoadmapSection';
 export * from './Footer';
 export * from './HeroSection';
