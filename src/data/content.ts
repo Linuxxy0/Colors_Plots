@@ -3,6 +3,7 @@ import { themes } from '@/themes/themes';
 export const navItems = [
   { label: 'Gallery', href: '#gallery' },
   { label: 'Themes', href: '#themes' },
+  { label: 'Dataset', href: '#dataset-playground' },
   { label: 'Examples', href: '#dashboard-demo' },
   { label: 'Docs', href: '#quick-start' },
 ];
@@ -17,12 +18,12 @@ export const highlights = [
     description: '覆盖趋势、对比、相关性、分布和多指标分析等核心科研场景。',
   },
   {
-    title: '模板化布局',
-    description: '提供首页、图表画廊、实验看板和研究报告页的模块化结构。',
+    title: '默认数据开箱即用',
+    description: '首页直接展示内置科研示例数据，不上传也能完整预览页面效果。',
   },
   {
-    title: '导出与复用',
-    description: '便于截图进 PPT、复用到 Dashboard、扩展成实验结果展示系统。',
+    title: '拖拽上传与下载示例',
+    description: '支持 CSV/JSON 拖拽上传、字段映射和示例文件下载，适合 GitHub Pages 静态托管。',
   },
 ];
 
@@ -65,12 +66,6 @@ export const chartCards = [
   },
 ];
 
-export const kpiCards = [
-  { label: 'Accuracy', value: '94.8%', delta: '+2.3%' },
-  { label: 'F1 Score', value: '0.912', delta: '+0.08' },
-  { label: 'Samples', value: '12,480', delta: '+1.1k' },
-];
-
 export const useCases = [
   {
     title: '实验结果对比',
@@ -102,33 +97,43 @@ export const docsColumns = [
   {
     title: 'Docs',
     button: 'Open Docs',
-    items: ['Installation', 'Theme System', 'Chart API', 'Layout Templates'],
+    items: ['Installation', 'Theme System', 'Dataset Loader', 'Chart API'],
   },
   {
     title: 'Contribution',
     button: 'Contribute',
-    items: ['Code Style', 'Pull Request Guide', 'Issue Templates', 'Design Tokens'],
+    items: ['Code Style', 'Pull Request Guide', 'Issue Templates', 'Release Checklist'],
   },
   {
     title: 'Roadmap',
     button: 'See Plan',
-    items: ['More Chart Types', 'PNG/SVG Export', 'Report Template', 'Dataset Loader'],
+    items: ['More Chart Types', 'Theme Toggle', 'Dataset Mapping', 'PNG/SVG Export'],
   },
 ];
 
-export const quickStartCode = `import { LineChartCard } from '@/components/charts';
-
-const data = [{ epoch: 1, acc: 0.71 }, { epoch: 2, acc: 0.8 }];
+export const quickStartCode = `import { defaultDataset } from '@/data/defaultDataset';
+import { LineChartCard } from '@/components/charts';
 
 export default function Demo() {
   return (
     <section className="glass-card p-6">
-      <LineChartCard compact title="Training Accuracy" />
+      <LineChartCard
+        title="Training Accuracy"
+        records={defaultDataset}
+        xKey="epoch"
+        yKey="accuracy"
+        numericKeys={["accuracy", "f1", "precision", "recall"]}
+      />
     </section>
   );
 }`;
 
-export const footerLinks = ['MIT License', 'GitHub', 'Documentation', 'Contact'];
+export const footerLinks = [
+  { label: 'MIT License', href: 'https://opensource.org/license/mit' },
+  { label: 'GitHub', href: 'https://github.com' },
+  { label: 'Documentation', href: '#quick-start' },
+  { label: 'Dataset Playground', href: '#dataset-playground' },
+];
 
 export const themeSummary = themes.map(({ name, description, palette }) => ({
   name,

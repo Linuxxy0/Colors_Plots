@@ -1,16 +1,45 @@
 # SciVizLab
 
-一个面向科研场景的可视化 GitHub 项目模板，强调 **科研配色、结构化首页、多元图表展示、可复用 Dashboard 模块**。
+[![React](https://img.shields.io/badge/React-18-20232A?style=for-the-badge&logo=react)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-5-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![GitHub Pages Ready](https://img.shields.io/badge/GitHub_Pages-ready-222222?style=for-the-badge&logo=githubpages&logoColor=white)](#github-pages-部署)
+
+一个面向科研场景的可视化 GitHub 项目模板，强调 **科研配色、结构化首页、多元图表展示、可复用 Dashboard 模块**，并且支持 **默认数据展示、拖拽上传 CSV/JSON、示例数据下载**。
 
 [项目概览](./docs/project-overview.md)
 
 ## 项目亮点
 
-- 科研风格首页：适合放在 GitHub 项目仓库或产品演示站
+- 科研风格首页：适合 GitHub 项目仓库或产品演示站
 - 三套主题配色：Classic Paper / Nature Minimal / Lab Dark
 - 多元图表预览：折线图、柱状图、热力图、散点图、箱线图、雷达图
-- 模块化结构：首页、图表画廊、Dashboard Demo、Quick Start、Roadmap
-- 适合继续扩展：论文结果页、实验面板、研究报告页
+- 默认数据即开即看：不上传也能完整展示页面效果
+- 拖拽上传：支持 CSV / JSON，本地解析，无需后端
+- 示例数据下载：内置 `public/data/scivizlab-sample.csv` 和 `.json`
+- GitHub Pages 自动部署：推送到 `main` 后自动构建并发布
+
+## Demo 能力
+
+### 默认数据
+首页打开后直接使用内置科研示例数据，适合展示：
+- 训练过程趋势
+- 模型性能对比
+- 特征相关性
+- 多指标综合能力
+
+### 自定义上传
+用户可以在 Dataset Playground 中：
+- 拖拽上传 CSV / JSON
+- 选择 X Field / Y Field
+- 下载示例数据模板
+- 一键恢复默认数据
+
+上传后会同步刷新：
+- Hero 预览图
+- Chart Gallery
+- Dashboard Demo
 
 ## 技术栈
 
@@ -23,22 +52,35 @@
 
 ```bash
 scivizlab/
+├─ .github/
+│  └─ workflows/
+│     └─ deploy.yml
 ├─ docs/
+│  ├─ github-pages.md
 │  ├─ project-overview.md
 │  └─ wireframe.md
 ├─ public/
+│  ├─ .nojekyll
+│  └─ data/
+│     ├─ scivizlab-sample.csv
+│     └─ scivizlab-sample.json
 ├─ src/
 │  ├─ components/
 │  │  ├─ charts/
 │  │  ├─ sections/
 │  │  └─ ui/
 │  ├─ data/
+│  │  └─ defaultDataset.ts
 │  ├─ themes/
+│  ├─ types/
+│  ├─ utils/
 │  ├─ App.tsx
 │  ├─ index.css
-│  └─ main.tsx
+│  ├─ main.tsx
+│  └─ vite-env.d.ts
 ├─ index.html
 ├─ package.json
+├─ package-lock.json
 ├─ postcss.config.cjs
 ├─ tailwind.config.cjs
 ├─ tsconfig.app.json
@@ -60,20 +102,20 @@ npm run dev
 npm run build
 ```
 
-GitHub Pages 预览：
+本地预览：
 
 ```bash
 npm run preview
 ```
 
-
 ## GitHub Pages 部署
 
 项目已内置 GitHub Pages 自动部署配置：
 
-- `vite.config.ts` 已设置相对路径 `base: './'`
-- `.github/workflows/deploy.yml` 已支持推送到 `main` 自动部署
+- `vite.config.ts` 使用相对路径 `base: './'`
+- `.github/workflows/deploy.yml` 支持推送到 `main` 自动部署
 - `public/.nojekyll` 已添加
+- `package-lock.json` 已包含，可直接使用 `npm ci`
 
 使用方式：
 
@@ -90,6 +132,7 @@ npm run preview
 - HeroSection
 - HighlightsSection
 - ThemeShowcaseSection
+- DataPlaygroundSection
 - ChartGallerySection
 - DashboardDemoSection
 - UseCasesSection
@@ -108,9 +151,9 @@ npm run preview
 ## 后续可扩展方向
 
 - 接入真实图表库，如 ECharts / Recharts / D3
-- 增加导出 PNG / SVG 能力
+- 增加 PNG / SVG 导出能力
 - 新增论文结果模板页和多语言支持
-- 接入 CSV / JSON 数据映射
+- 增强字段映射、数据校验和图表编辑能力
 
 ## License
 

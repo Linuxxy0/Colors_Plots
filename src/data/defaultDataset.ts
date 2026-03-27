@@ -1,10 +1,12 @@
-import type { DatasetRow } from '@/types/dataset';
+import type { DatasetRecord } from '@/types/dataset';
 
-export const defaultRows: DatasetRow[] = [
-  { epoch: 1, accuracy: 71.2, f1: 68.4, precision: 70.1, recall: 66.8, loss: 0.92, latency: 142, samples: 2200 },
-  { epoch: 2, accuracy: 76.8, f1: 74.2, precision: 75.6, recall: 72.9, loss: 0.76, latency: 138, samples: 3800 },
-  { epoch: 3, accuracy: 82.1, f1: 79.6, precision: 80.4, recall: 78.7, loss: 0.58, latency: 133, samples: 5600 },
-  { epoch: 4, accuracy: 87.4, f1: 84.3, precision: 85.8, recall: 83.1, loss: 0.42, latency: 128, samples: 7900 },
-  { epoch: 5, accuracy: 91.6, f1: 89.1, precision: 90.2, recall: 88.4, loss: 0.29, latency: 123, samples: 10100 },
-  { epoch: 6, accuracy: 94.8, f1: 91.2, precision: 92.6, recall: 90.3, loss: 0.18, latency: 118, samples: 12480 },
+export const defaultDataset: DatasetRecord[] = [
+  { epoch: 1, accuracy: 0.71, f1: 0.66, precision: 0.68, recall: 0.64, loss: 1.24, samples: 1180, latency: 142 },
+  { epoch: 2, accuracy: 0.76, f1: 0.72, precision: 0.73, recall: 0.7, loss: 1.02, samples: 1210, latency: 136 },
+  { epoch: 3, accuracy: 0.8, f1: 0.77, precision: 0.79, recall: 0.75, loss: 0.88, samples: 1240, latency: 132 },
+  { epoch: 4, accuracy: 0.84, f1: 0.81, precision: 0.83, recall: 0.8, loss: 0.73, samples: 1260, latency: 127 },
+  { epoch: 5, accuracy: 0.87, f1: 0.84, precision: 0.86, recall: 0.83, loss: 0.61, samples: 1280, latency: 123 },
+  { epoch: 6, accuracy: 0.9, f1: 0.88, precision: 0.89, recall: 0.87, loss: 0.53, samples: 1310, latency: 118 },
+  { epoch: 7, accuracy: 0.926, f1: 0.901, precision: 0.91, recall: 0.892, loss: 0.45, samples: 1330, latency: 114 },
+  { epoch: 8, accuracy: 0.948, f1: 0.912, precision: 0.921, recall: 0.905, loss: 0.39, samples: 1360, latency: 109 },
 ];

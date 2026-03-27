@@ -1,8 +1,16 @@
+import type { DatasetRecord } from '@/types/dataset';
 import { themes } from '@/themes/themes';
 import { LineChartCard, ScatterChartCard } from '@/components/charts';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 
-export function ThemeShowcaseSection() {
+type Props = {
+  records: DatasetRecord[];
+  xKey: string;
+  yKey: string;
+  numericKeys: string[];
+};
+
+export function ThemeShowcaseSection({ records, xKey, yKey, numericKeys }: Props) {
   return (
     <section id="themes" className="section-shell pt-24">
       <div className="section-inner">
@@ -29,7 +37,11 @@ export function ThemeShowcaseSection() {
                 ))}
               </div>
               <div className="mt-6 min-h-[180px]">
-                {index === 1 ? <ScatterChartCard title="Theme Preview" compact /> : <LineChartCard title="Theme Preview" compact />}
+                {index === 1 ? (
+                  <ScatterChartCard title="Theme Preview" compact records={records} xKey={xKey} yKey={yKey} numericKeys={numericKeys} />
+                ) : (
+                  <LineChartCard title="Theme Preview" compact records={records} xKey={xKey} yKey={yKey} numericKeys={numericKeys} />
+                )}
               </div>
               <button className="mt-6 button-secondary w-full">Preview Theme</button>
             </article>

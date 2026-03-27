@@ -8,7 +8,7 @@ export function DocsRoadmapSection() {
         <SectionHeading
           eyebrow="Explore More"
           title="文档、贡献方式与 Roadmap"
-          description="把项目做成真正可维护的开源仓库，除了首页视觉，还要兼顾说明文档、代码规范和可迭代路线。"
+          description="把项目做成真正可维护的开源仓库，除了首页视觉，还要兼顾 README、上传能力、构建流程和可迭代路线。"
         />
         <div className="mt-12 grid gap-5 lg:grid-cols-3">
           {docsColumns.map((column) => (

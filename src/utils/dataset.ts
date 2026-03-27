@@ -1,60 +1,128 @@
-import { defaultRows } from '@/data/defaultDataset';
-import type { DatasetRow, DatasetSource, DatasetValue } from '@/types/dataset';
+import type { DatasetMeta, DatasetRecord, DatasetValue } from '@/types/dataset';
 
-function isNumericLike(value: unknown): boolean {
-  if (typeof value === 'number') {
-    return Number.isFinite(value);
-  }
-  if (typeof value !== 'string') {
-    return false;
-  }
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return false;
-  }
-  return !Number.isNaN(Number(trimmed));
-}
+const AUTO_X_PREFERRED = ['epoch', 'step', 'time', 'date', 'round', 'iteration'];
+const AUTO_Y_PREFERRED = ['accuracy', 'score', 'f1', 'auc', 'precision', 'recall', 'loss'];
 
-function toDatasetValue(value: unknown): DatasetValue {
-  if (value === null || value === undefined || value === '') {
-    return null;
+function toNumber(value: DatasetValue): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
   }
-  if (typeof value === 'number') {
-    return Number.isFinite(value) ? value : null;
-  }
+
   if (typeof value === 'string') {
     const trimmed = value.trim();
-    if (!trimmed) {
-      return null;
-    }
-    if (isNumericLike(trimmed)) {
-      return Number(trimmed);
-    }
-    return trimmed;
+    if (!trimmed) return null;
+    const parsed = Number(trimmed);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  return null;
+}
+
+export function toDisplay(value: DatasetValue): string {
+  if (value === null || value === undefined) return '—';
+  if (typeof value === 'number') {
+    if (Math.abs(value) >= 1000) return value.toLocaleString();
+    return Number.isInteger(value) ? String(value) : value.toFixed(value < 1 ? 3 : 2).replace(/0+$/, '').replace(/\.$/, '');
   }
   return String(value);
 }
 
-function parseCsvLine(line: string): string[] {
+export function cleanKey(input: string, fallback: string) {
+  const normalized = input
+    .trim()
+    .replace(/^"|"$/g, '')
+    .replace(/\s+/g, '_')
+    .replace(/[^a-zA-Z0-9_]/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .toLowerCase();
+
+  return normalized || fallback;
+}
+
+function normalizeCell(value: unknown): DatasetValue {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : null;
+  }
+
+  if (typeof value === 'boolean') {
+    return value ? 1 : 0;
+  }
+
+  const text = String(value).trim();
+  if (!text) return null;
+  const numeric = Number(text);
+  return Number.isFinite(numeric) ? numeric : text;
+}
+
+export function normalizeRecords(rows: Record<string, unknown>[]): DatasetRecord[] {
+  return rows
+    .map((row, rowIndex) => {
+      const entries = Object.entries(row).map(([key, value], keyIndex) => [cleanKey(key, `field_${keyIndex + 1}`), normalizeCell(value)] as const);
+      if (entries.length === 0) {
+        return null;
+      }
+
+      const record: DatasetRecord = {};
+      for (const [key, value] of entries) {
+        record[key] = value;
+      }
+      if (!record.row_id) {
+        record.row_id = rowIndex + 1;
+      }
+      return record;
+    })
+    .filter((item): item is DatasetRecord => item !== null);
+}
+
+export function parseCsv(text: string): DatasetRecord[] {
+  const lines = text
+    .replace(/^\uFEFF/, '')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (lines.length < 2) {
+    throw new Error('CSV 至少需要表头和一行数据。');
+  }
+
+  const headers = splitCsvLine(lines[0]).map((header, index) => cleanKey(header, `field_${index + 1}`));
+  const records = lines.slice(1).map((line) => {
+    const cells = splitCsvLine(line);
+    const record: Record<string, unknown> = {};
+    headers.forEach((header, index) => {
+      record[header] = cells[index] ?? null;
+    });
+    return record;
+  });
+
+  return normalizeRecords(records);
+}
+
+function splitCsvLine(line: string): string[] {
   const cells: string[] = [];
   let current = '';
-  let inQuotes = false;
+  let insideQuotes = false;
 
-  for (let index = 0; index < line.length; index += 1) {
-    const char = line[index];
-    const next = line[index + 1];
+  for (let i = 0; i < line.length; i += 1) {
+    const char = line[i];
+    const next = line[i + 1];
 
     if (char === '"') {
-      if (inQuotes && next === '"') {
+      if (insideQuotes && next === '"') {
         current += '"';
-        index += 1;
+        i += 1;
       } else {
-        inQuotes = !inQuotes;
+        insideQuotes = !insideQuotes;
       }
       continue;
     }
 
-    if (char === ',' && !inQuotes) {
+    if (char === ',' && !insideQuotes) {
       cells.push(current.trim());
       current = '';
       continue;
@@ -67,274 +135,130 @@ function parseCsvLine(line: string): string[] {
   return cells;
 }
 
-function parseCsvText(text: string): DatasetRow[] {
-  const lines = text
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean);
-
-  if (lines.length < 2) {
-    throw new Error('CSV 至少需要一行表头和一行数据。');
+export function parseJson(text: string): DatasetRecord[] {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    throw new Error('JSON 解析失败，请确认文件内容为合法 JSON。');
   }
 
-  const headers = parseCsvLine(lines[0]).map((header, index) => header || `field_${index + 1}`);
-
-  return lines.slice(1).map((line) => {
-    const cells = parseCsvLine(line);
-    return headers.reduce<DatasetRow>((row, header, index) => {
-      row[header] = toDatasetValue(cells[index] ?? null);
-      return row;
-    }, {});
-  });
-}
-
-function parseJsonText(text: string): DatasetRow[] {
-  const parsed = JSON.parse(text) as unknown;
-
-  if (!Array.isArray(parsed)) {
-    throw new Error('JSON 需要是对象数组，例如 [{"epoch":1,"accuracy":0.9}]。');
+  let rows: Record<string, unknown>[] = [];
+  if (Array.isArray(parsed)) {
+    rows = parsed.filter((item): item is Record<string, unknown> => typeof item === 'object' && item !== null);
+  } else if (parsed && typeof parsed === 'object' && Array.isArray((parsed as { data?: unknown }).data)) {
+    rows = (parsed as { data: unknown[] }).data.filter((item): item is Record<string, unknown> => typeof item === 'object' && item !== null);
   }
-
-  const rows = parsed
-    .filter((item): item is Record<string, unknown> => typeof item === 'object' && item !== null && !Array.isArray(item))
-    .map((item) =>
-      Object.entries(item).reduce<DatasetRow>((row, [key, value]) => {
-        row[key] = toDatasetValue(value);
-        return row;
-      }, {}),
-    );
 
   if (!rows.length) {
-    throw new Error('JSON 数组里没有可用对象。');
+    throw new Error('JSON 需要是对象数组，或包含 data 字段的对象数组。');
   }
 
-  return rows;
+  return normalizeRecords(rows);
 }
 
-export function createDatasetSource(rows: DatasetRow[], name = 'Uploaded dataset'): DatasetSource {
-  if (!rows.length) {
-    throw new Error('数据为空，无法生成图表。');
-  }
+export function getDatasetMeta(records: DatasetRecord[]): DatasetMeta {
+  const keys = Array.from(new Set(records.flatMap((record) => Object.keys(record)).filter((key) => key !== 'row_id')));
+  const numericKeys = keys.filter((key) => records.some((record) => toNumber(record[key]) !== null));
+  const categoricalKeys = keys.filter((key) => !numericKeys.includes(key));
 
-  const fields = Array.from(
-    rows.reduce<Set<string>>((set, row) => {
-      Object.keys(row).forEach((key) => set.add(key));
-      return set;
-    }, new Set()),
-  );
+  const xKey =
+    AUTO_X_PREFERRED.find((key) => keys.includes(key)) ??
+    categoricalKeys[0] ??
+    numericKeys[0] ??
+    keys[0] ??
+    'row_id';
 
-  const numericFields = fields.filter((field) =>
-    rows.some((row) => typeof row[field] === 'number' && Number.isFinite(row[field] as number)),
-  );
-  if (!numericFields.length) {
-    throw new Error('至少需要 1 列数值字段，才能绘制图表。');
-  }
-  const categoricalFields = fields.filter((field) => !numericFields.includes(field));
-  const xField = categoricalFields[0] ?? fields[0] ?? 'index';
-  const yField = numericFields[0] ?? fields.find((field) => field !== xField) ?? xField;
-  const secondaryYField = numericFields.find((field) => field !== yField);
-  const metricFields = numericFields.filter((field) => field !== xField).slice(0, 6);
+  const yKey =
+    AUTO_Y_PREFERRED.find((key) => numericKeys.includes(key)) ??
+    numericKeys.find((key) => key !== xKey) ??
+    numericKeys[0] ??
+    xKey;
+
+  return { keys, numericKeys, categoricalKeys, xKey, yKey };
+}
+
+export function getSeries(records: DatasetRecord[], xKey: string, yKey: string, limit = 8) {
+  return records.slice(0, limit).map((record, index) => ({
+    index,
+    x: toDisplay(record[xKey] ?? index + 1),
+    xValue: toNumber(record[xKey]) ?? index + 1,
+    yValue: toNumber(record[yKey]) ?? 0,
+  }));
+}
+
+export function getNumericValues(records: DatasetRecord[], key: string) {
+  return records.map((record) => toNumber(record[key])).filter((value): value is number => value !== null);
+}
+
+export function summarizeDataset(records: DatasetRecord[], yKey: string) {
+  const values = getNumericValues(records, yKey);
+  const latest = values.length ? values[values.length - 1] : 0;
+  const previous = values.length > 1 ? values[values.length - 2] : latest;
+  const average = values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
+  const delta = latest - previous;
 
   return {
-    name,
-    rows,
-    fields,
-    numericFields,
-    categoricalFields,
-    xField,
-    yField,
-    secondaryYField,
-    metricFields: metricFields.length ? metricFields : numericFields.slice(0, 6),
+    latest,
+    previous,
+    average,
+    delta,
+    count: records.length,
   };
 }
 
-export function getDefaultDatasetSource(): DatasetSource {
-  return createDatasetSource(defaultRows, 'Built-in demo dataset');
-}
-
-export async function parseUploadedFile(file: File): Promise<DatasetSource> {
-  const text = await file.text();
-  const extension = file.name.split('.').pop()?.toLowerCase();
-
-  const rows = extension === 'json' ? parseJsonText(text) : parseCsvText(text);
-  return createDatasetSource(rows, file.name);
-}
-
-function getNumericValues(rows: DatasetRow[], field: string): number[] {
-  return rows
-    .map((row) => row[field])
-    .filter((value): value is number => typeof value === 'number' && Number.isFinite(value));
-}
-
-export function computeKpis(dataset: DatasetSource): { label: string; value: string; delta: string }[] {
-  const yValues = getNumericValues(dataset.rows, dataset.yField);
-  const secondaryField = dataset.secondaryYField ?? dataset.metricFields[1] ?? dataset.yField;
-  const secondaryValues = getNumericValues(dataset.rows, secondaryField);
-  const latest = yValues.at(-1) ?? 0;
-  const previous = yValues.at(-2) ?? latest;
-  const best = yValues.length ? Math.max(...yValues) : latest;
-  const sampleCount = dataset.rows.length;
-  const latestSecondary = secondaryValues.at(-1) ?? 0;
-
-  const delta = latest - previous;
-  const latestLabel = dataset.yField.replace(/_/g, ' ');
-  const secondaryLabel = secondaryField.replace(/_/g, ' ');
-
-  return [
-    {
-      label: latestLabel,
-      value: formatNumeric(latest),
-      delta: `${delta >= 0 ? '+' : ''}${formatNumeric(delta)}`,
-    },
-    {
-      label: `Best ${latestLabel}`,
-      value: formatNumeric(best),
-      delta: `Latest ${secondaryLabel}: ${formatNumeric(latestSecondary)}`,
-    },
-    {
-      label: 'Rows',
-      value: sampleCount.toLocaleString('en-US'),
-      delta: `${dataset.fields.length} columns`,
-    },
-  ];
-}
-
-export function formatNumeric(value: number): string {
+export function formatMetric(value: number) {
   if (Math.abs(value) >= 1000) {
-    return value.toLocaleString('en-US', { maximumFractionDigits: 0 });
+    return value.toLocaleString();
   }
-  if (Math.abs(value) >= 100) {
-    return value.toLocaleString('en-US', { maximumFractionDigits: 1 });
+  if (value <= 1 && value >= -1) {
+    return `${(value * 100).toFixed(1)}%`;
   }
-  if (Math.abs(value) >= 1) {
-    return value.toLocaleString('en-US', { maximumFractionDigits: 2 });
+  return value.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+}
+
+export function percentile(values: number[], p: number) {
+  if (!values.length) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const pos = (sorted.length - 1) * p;
+  const base = Math.floor(pos);
+  const rest = pos - base;
+  if (sorted[base + 1] !== undefined) {
+    return sorted[base] + rest * (sorted[base + 1] - sorted[base]);
   }
-  return value.toLocaleString('en-US', { maximumFractionDigits: 3 });
+  return sorted[base];
 }
 
-export function datasetPreviewRows(dataset: DatasetSource, limit = 5): DatasetRow[] {
-  return dataset.rows.slice(0, limit);
-}
+export function pearson(valuesA: number[], valuesB: number[]) {
+  const size = Math.min(valuesA.length, valuesB.length);
+  if (size < 2) return 0;
+  const a = valuesA.slice(0, size);
+  const b = valuesB.slice(0, size);
+  const meanA = a.reduce((sum, value) => sum + value, 0) / size;
+  const meanB = b.reduce((sum, value) => sum + value, 0) / size;
 
-export function describeDataset(dataset: DatasetSource): string {
-  return `${dataset.rows.length} rows · ${dataset.fields.length} fields · ${dataset.numericFields.length} numeric columns`;
-}
-
-export function getSeries(dataset: DatasetSource, xField = dataset.xField, yField = dataset.yField) {
-  return dataset.rows
-    .map((row, index) => {
-      const rawX = row[xField] ?? index + 1;
-      const rawY = row[yField];
-      if (typeof rawY !== 'number' || !Number.isFinite(rawY)) {
-        return null;
-      }
-      const numericX = typeof rawX === 'number' && Number.isFinite(rawX) ? rawX : index + 1;
-      const label = typeof rawX === 'string' ? rawX : String(rawX);
-      return { x: numericX, y: rawY, label };
-    })
-    .filter((item): item is { x: number; y: number; label: string } => item !== null);
-}
-
-export function getScatterSeries(dataset: DatasetSource, xField?: string, yField?: string) {
-  const scatterX = xField ?? dataset.numericFields[0];
-  const scatterY = yField ?? dataset.numericFields[1] ?? dataset.numericFields[0];
-  return dataset.rows
-    .map((row) => {
-      const x = row[scatterX];
-      const y = row[scatterY];
-      if (typeof x !== 'number' || typeof y !== 'number') {
-        return null;
-      }
-      return { x, y };
-    })
-    .filter((item): item is { x: number; y: number } => item !== null);
-}
-
-export function getBoxGroups(dataset: DatasetSource, count = 3) {
-  return dataset.metricFields.slice(0, count).map((field) => {
-    const values = getNumericValues(dataset.rows, field).sort((a, b) => a - b);
-    if (!values.length) {
-      return null;
-    }
-    const percentile = (p: number) => {
-      const position = (values.length - 1) * p;
-      const lower = Math.floor(position);
-      const upper = Math.ceil(position);
-      if (lower === upper) {
-        return values[lower];
-      }
-      const weight = position - lower;
-      return values[lower] * (1 - weight) + values[upper] * weight;
-    };
-
-    return {
-      field,
-      min: values[0],
-      q1: percentile(0.25),
-      median: percentile(0.5),
-      q3: percentile(0.75),
-      max: values[values.length - 1],
-    };
-  }).filter((item): item is { field: string; min: number; q1: number; median: number; q3: number; max: number } => item !== null);
-}
-
-function correlation(valuesA: number[], valuesB: number[]): number {
-  const pairs = valuesA.map((value, index) => [value, valuesB[index]] as const).filter(([, other]) => Number.isFinite(other));
-  const n = pairs.length;
-  if (n < 2) {
-    return 0;
-  }
-  const meanA = pairs.reduce((sum, [value]) => sum + value, 0) / n;
-  const meanB = pairs.reduce((sum, [, value]) => sum + value, 0) / n;
-  const numerator = pairs.reduce((sum, [valueA, valueB]) => sum + (valueA - meanA) * (valueB - meanB), 0);
-  const denominatorA = Math.sqrt(pairs.reduce((sum, [value]) => sum + (value - meanA) ** 2, 0));
-  const denominatorB = Math.sqrt(pairs.reduce((sum, [, value]) => sum + (value - meanB) ** 2, 0));
-  if (!denominatorA || !denominatorB) {
-    return 0;
-  }
-  return numerator / (denominatorA * denominatorB);
-}
-
-export function getHeatmapMatrix(dataset: DatasetSource, count = 4) {
-  const fields = dataset.metricFields.slice(0, count);
-  if (fields.length < 2) {
-    return { fields, matrix: [] as number[][] };
-  }
-  const numericSeries = fields.map((field) => getNumericValues(dataset.rows, field));
-  const matrix = fields.map((_, rowIndex) =>
-    fields.map((__, colIndex) => correlation(numericSeries[rowIndex], numericSeries[colIndex])),
-  );
-  return { fields, matrix };
-}
-
-export function getRadarSeries(dataset: DatasetSource, count = 5) {
-  const fields = dataset.metricFields.slice(0, count);
-  const latestRow = dataset.rows.at(-1);
-  if (!latestRow) {
-    return [] as { field: string; value: number }[];
+  let numerator = 0;
+  let sumA = 0;
+  let sumB = 0;
+  for (let index = 0; index < size; index += 1) {
+    const diffA = a[index] - meanA;
+    const diffB = b[index] - meanB;
+    numerator += diffA * diffB;
+    sumA += diffA ** 2;
+    sumB += diffB ** 2;
   }
 
-  return fields.map((field) => {
-    const values = getNumericValues(dataset.rows, field);
-    const max = values.length ? Math.max(...values) : 1;
-    const raw = latestRow[field];
-    const value = typeof raw === 'number' && Number.isFinite(raw) && max ? raw / max : 0;
-    return { field, value };
-  });
+  const denominator = Math.sqrt(sumA * sumB);
+  return denominator ? numerator / denominator : 0;
 }
 
-export function buildInsightBullets(dataset: DatasetSource): string[] {
-  const yValues = getNumericValues(dataset.rows, dataset.yField);
-  const first = yValues[0] ?? 0;
-  const last = yValues.at(-1) ?? first;
-  const change = last - first;
-  const fieldLabel = dataset.yField.replace(/_/g, ' ');
-  const metricSummary = dataset.metricFields.slice(0, 3).join(' / ');
+export function toCsv(records: DatasetRecord[]) {
+  const keys = Array.from(new Set(records.flatMap((record) => Object.keys(record)).filter((key) => key !== 'row_id')));
+  const escape = (value: DatasetValue) => {
+    if (value === null || value === undefined) return '';
+    const text = String(value);
+    return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+  };
 
-  return [
-    `${fieldLabel} 从 ${formatNumeric(first)} 变化到 ${formatNumeric(last)}。`,
-    `当前数据集包含 ${dataset.rows.length} 行，适合直接预览趋势与比较图。`,
-    metricSummary ? `已自动识别的主要数值字段：${metricSummary}。` : '已回退到默认预览数据。',
-    change >= 0 ? '上传数据后会自动替换首页里的示例图表。' : '你也可以切回默认数据继续展示模板效果。',
-  ];
+  return [keys.join(','), ...records.map((record) => keys.map((key) => escape(record[key] ?? null)).join(','))].join('\n');
 }

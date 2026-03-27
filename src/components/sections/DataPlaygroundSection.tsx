@@ -1,155 +1,173 @@
-import { useMemo, useRef, useState, type ChangeEvent } from 'react';
-import { BarChartCard, LineChartCard, ScatterChartCard } from '@/components/charts';
+import type { ChangeEvent, DragEvent } from 'react';
+import type { DatasetRecord, DatasetSource } from '@/types/dataset';
+import { toDisplay } from '@/utils/dataset';
 import { SectionHeading } from '@/components/ui/SectionHeading';
-import type { DatasetSource } from '@/types/dataset';
-import { datasetPreviewRows, describeDataset, parseUploadedFile } from '@/utils/dataset';
 
 type Props = {
-  dataset: DatasetSource;
-  onDatasetChange: (dataset: DatasetSource) => void;
+  records: DatasetRecord[];
+  keys: string[];
+  numericKeys: string[];
+  xKey: string;
+  yKey: string;
+  source: DatasetSource;
+  fileName: string;
+  error: string;
+  onXKeyChange: (key: string) => void;
+  onYKeyChange: (key: string) => void;
   onReset: () => void;
+  onFileSelect: (file: File) => void;
 };
 
-export function DataPlaygroundSection({ dataset, onDatasetChange, onReset }: Props) {
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const previewRows = useMemo(() => datasetPreviewRows(dataset, 5), [dataset]);
+export function DataPlaygroundSection({
+  records,
+  keys,
+  numericKeys,
+  xKey,
+  yKey,
+  source,
+  fileName,
+  error,
+  onXKeyChange,
+  onYKeyChange,
+  onReset,
+  onFileSelect,
+}: Props) {
+  const sampleCsvUrl = `${import.meta.env.BASE_URL}data/scivizlab-sample.csv`;
+  const sampleJsonUrl = `${import.meta.env.BASE_URL}data/scivizlab-sample.json`;
 
-  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) {
-      return;
-    }
-
-    setIsLoading(true);
-    setErrorMessage(null);
-
-    try {
-      const parsed = await parseUploadedFile(file);
-      onDatasetChange(parsed);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : '上传失败，请检查文件格式。';
-      setErrorMessage(message);
-    } finally {
-      setIsLoading(false);
+    if (file) {
+      onFileSelect(file);
       event.target.value = '';
     }
   };
 
-  const handleFieldChange = (field: 'xField' | 'yField', value: string) => {
-    onDatasetChange({
-      ...dataset,
-      [field]: value,
-    });
+  const handleDrop = (event: DragEvent<HTMLLabelElement>) => {
+    event.preventDefault();
+    const file = event.dataTransfer.files?.[0];
+    if (file) onFileSelect(file);
+  };
+
+  const handleDragOver = (event: DragEvent<HTMLLabelElement>) => {
+    event.preventDefault();
   };
 
   return (
-    <section id="uploader" className="section-shell pt-24">
+    <section id="dataset-playground" className="section-shell pt-24">
       <div className="section-inner">
         <SectionHeading
           eyebrow="Dataset Playground"
-          title="默认示例数据 + 自定义上传"
-          description="首页图表默认展示内置科研示例数据。你也可以上传 CSV 或 JSON，对趋势图、对比图、散点图和看板模块进行即时替换。"
-          action={
-            <div className="flex flex-wrap gap-3">
-              <button type="button" className="button-primary" onClick={() => fileInputRef.current?.click()}>
-                Upload CSV / JSON
-              </button>
-              <button type="button" className="button-secondary" onClick={onReset}>
-                Reset Demo Data
-              </button>
-            </div>
-          }
+          title="默认数据展示 + 拖拽上传自定义数据"
+          description="页面开箱即用展示内置科研示例数据，也支持用户拖拽上传 CSV 或 JSON。上传后会自动刷新首页预览、图表画廊和 Dashboard。"
         />
-
-        <div className="glass-card mt-12 p-6 sm:p-7">
-          <div className="grid gap-5 xl:grid-cols-[0.95fr_1.05fr]">
-            <div>
-              <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50/80 p-5">
-                <input ref={fileInputRef} type="file" accept=".csv,.json" className="hidden" onChange={handleFileChange} />
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Current Dataset</p>
-                <h3 className="mt-4 text-2xl font-semibold text-ink">{dataset.name}</h3>
-                <p className="mt-3 text-sm leading-7 text-slate-600">{describeDataset(dataset)}</p>
-                <p className="mt-4 text-sm leading-7 text-slate-600">
-                  推荐格式：首行为字段名；至少包含 1 列横轴字段和 1 列数值字段。JSON 请使用对象数组。
-                </p>
-                {errorMessage ? <p className="mt-4 text-sm font-medium text-rose-600">{errorMessage}</p> : null}
-                {isLoading ? <p className="mt-4 text-sm font-medium text-slate-600">正在解析文件...</p> : null}
+        <div className="mt-12 grid gap-5 xl:grid-cols-[0.92fr_1.08fr]">
+          <article className="glass-card p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Dataset Summary</p>
+                <h3 className="mt-3 text-2xl font-semibold text-ink">{source === 'default' ? 'Built-in sample data' : 'Custom upload'}</h3>
+                <p className="mt-2 text-sm leading-7 text-slate-600">当前数据源：{fileName}</p>
               </div>
-
-              <div className="mt-5 grid gap-4 md:grid-cols-2">
-                <label className="glass-card p-4">
-                  <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">X Field</span>
-                  <select
-                    className="mt-3 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none"
-                    value={dataset.xField}
-                    onChange={(event) => handleFieldChange('xField', event.target.value)}
-                  >
-                    {dataset.fields.map((field) => (
-                      <option key={field} value={field}>
-                        {field}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="glass-card p-4">
-                  <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Y Field</span>
-                  <select
-                    className="mt-3 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none"
-                    value={dataset.yField}
-                    onChange={(event) => handleFieldChange('yField', event.target.value)}
-                  >
-                    {dataset.numericFields.map((field) => (
-                      <option key={field} value={field}>
-                        {field}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+              <button type="button" onClick={onReset} className="button-secondary">
+                Reset to Default
+              </button>
+            </div>
+            <div className="mt-6 grid gap-4 sm:grid-cols-3">
+              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Rows</p>
+                <p className="mt-3 text-2xl font-semibold text-ink">{records.length}</p>
               </div>
-
-              <div className="glass-card mt-5 overflow-hidden p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Preview Rows</p>
-                <div className="mt-4 overflow-x-auto">
-                  <table className="min-w-full border-separate border-spacing-y-2 text-sm">
-                    <thead>
-                      <tr>
-                        {dataset.fields.slice(0, 6).map((field) => (
-                          <th key={field} className="px-3 py-2 text-left font-semibold text-slate-500">
-                            {field}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {previewRows.map((row, index) => (
-                        <tr key={`row-${index}`} className="rounded-2xl bg-slate-50">
-                          {dataset.fields.slice(0, 6).map((field) => (
-                            <td key={`${field}-${index}`} className="px-3 py-3 text-slate-700">
-                              {String(row[field] ?? '-')}
-                            </td>
-                          ))}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Columns</p>
+                <p className="mt-3 text-2xl font-semibold text-ink">{keys.length}</p>
+              </div>
+              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Numeric Fields</p>
+                <p className="mt-3 text-2xl font-semibold text-ink">{numericKeys.length}</p>
               </div>
             </div>
+            <div className="mt-6 grid gap-4 md:grid-cols-2">
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-slate-600">X Field</span>
+                <select value={xKey} onChange={(event) => onXKeyChange(event.target.value)} className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-slate-500">
+                  {keys.map((key) => (
+                    <option key={key} value={key}>
+                      {key}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-slate-600">Y Field</span>
+                <select value={yKey} onChange={(event) => onYKeyChange(event.target.value)} className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-slate-500">
+                  {numericKeys.map((key) => (
+                    <option key={key} value={key}>
+                      {key}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <div className="mt-6 overflow-hidden rounded-3xl border border-slate-200">
+              <div className="grid grid-cols-4 gap-px bg-slate-200 text-xs uppercase tracking-[0.16em] text-slate-500">
+                {keys.slice(0, 4).map((key) => (
+                  <div key={key} className="bg-slate-50 px-3 py-2">
+                    {key}
+                  </div>
+                ))}
+              </div>
+              {records.slice(0, 4).map((record, index) => (
+                <div key={`preview-row-${index}`} className="grid grid-cols-4 gap-px bg-slate-200 text-sm text-slate-600">
+                  {keys.slice(0, 4).map((key) => (
+                    <div key={`${index}-${key}`} className="bg-white px-3 py-2">
+                      {toDisplay(record[key] ?? null)}
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </article>
 
-            <div className="grid gap-4">
-              <div className="min-h-[240px]">
-                <LineChartCard title="Uploaded Trend Preview" dataset={dataset} />
+          <div className="grid gap-5">
+            <label
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              className="glass-card flex min-h-[280px] cursor-pointer flex-col items-center justify-center rounded-[28px] border border-dashed border-slate-300 px-6 text-center transition hover:border-slate-400"
+            >
+              <input type="file" accept=".csv,.json" onChange={handleInputChange} className="hidden" />
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-xl text-slate-500">↥</div>
+              <h3 className="mt-6 text-2xl font-semibold text-ink">拖拽上传你的 CSV / JSON</h3>
+              <p className="mt-3 max-w-lg text-sm leading-7 text-slate-600">
+                上传后会自动解析为对象数组，支持选择 X / Y 字段。这个能力完全运行在前端，适合 GitHub Pages 静态托管。
+              </p>
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                <span className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm text-slate-500">Drag & Drop</span>
+                <span className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm text-slate-500">CSV</span>
+                <span className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm text-slate-500">JSON</span>
               </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="min-h-[220px]">
-                  <BarChartCard title="Uploaded Comparison" compact dataset={dataset} />
+              <p className="mt-6 text-sm font-medium text-slate-500">{error || `当前文件：${fileName}`}</p>
+            </label>
+
+            <div className="grid gap-5 md:grid-cols-2">
+              <article className="glass-card p-6">
+                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Sample files</p>
+                <h3 className="mt-3 text-xl font-semibold text-ink">下载示例数据</h3>
+                <p className="mt-3 text-sm leading-7 text-slate-600">方便用户先下载样例再替换成自己的实验数据，也方便你在 README 里做快速演示。</p>
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <a href={sampleCsvUrl} download className="button-secondary">Download CSV</a>
+                  <a href={sampleJsonUrl} download className="button-secondary">Download JSON</a>
                 </div>
-                <div className="min-h-[220px]">
-                  <ScatterChartCard title="Uploaded Scatter" compact dataset={dataset} />
-                </div>
-              </div>
+              </article>
+              <article className="glass-card p-6">
+                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Upload shape</p>
+                <h3 className="mt-3 text-xl font-semibold text-ink">推荐字段格式</h3>
+                <ul className="mt-4 space-y-3 text-sm leading-7 text-slate-600">
+                  <li>• 至少包含 2 列，且有 1 列为数值字段。</li>
+                  <li>• 建议使用 epoch / step / time 作为横轴字段。</li>
+                  <li>• JSON 推荐结构为对象数组，或 {'{'} data: [...] {'}'}。</li>
+                </ul>
+              </article>
             </div>
           </div>
         </div>

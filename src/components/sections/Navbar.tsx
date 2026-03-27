@@ -26,13 +26,6 @@ export function Navbar() {
             >
               GitHub
             </a>
-            <button
-              type="button"
-              aria-label="Toggle theme"
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-600"
-            >
-              ○
-            </button>
           </nav>
         </div>
       </div>
