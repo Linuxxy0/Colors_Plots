@@ -1,60 +1,51 @@
-import { useMemo, useState } from 'react';
-import { PageIntro } from '@/components/common/PageIntro';
-import { DatasetSummary } from '@/components/dataset/DatasetSummary';
-import { FieldMappingPanel } from '@/components/dataset/FieldMappingPanel';
-import { UploadPanel } from '@/components/dataset/UploadPanel';
-import { chartCatalog } from '@/data/chartCatalog';
-import { useAppState } from '@/context/AppStateContext';
-import { chartCopy, t, uiText } from '@/i18n';
-import { getChartPreviewInput } from '@/data/chartPreviewData';
+import { useState } from 'react';
+import { ChartPreview } from '@/components/charts';
+import { UploadPanel } from '@/components/playground/UploadPanel';
+import { useAppContext } from '@/context/AppContext';
+import { chartDefinitions } from '@/data/library';
+import type { ChartKind } from '@/types/app';
+import { t } from '@/utils/i18n';
 
 export function PlaygroundPage() {
-  const { locale, dataset, meta, xKey, yKey, theme } = useAppState();
-  const [chartId, setChartId] = useState(chartCatalog[0]?.id ?? 'line');
-  const activeChart = useMemo(() => chartCatalog.find((item) => item.id === chartId) ?? chartCatalog[0], [chartId]);
-  const preview = useMemo(() => getChartPreviewInput(chartId, dataset, meta, xKey, yKey), [chartId, dataset, meta, xKey, yKey]);
-  const ChartComponent = activeChart.component;
+  const { language, currentTheme, getChartDataset } = useAppContext();
+  const [chartId, setChartId] = useState<ChartKind>('line');
+  const dataset = getChartDataset(chartId);
 
   return (
-    <div className="space-y-6">
-      <PageIntro
-        eyebrow={locale === 'zh' ? '数据实验台' : 'Dataset playground'}
-        title={locale === 'zh' ? '默认数据 + 自己上传的实时实验台' : 'Live playground for sample and uploaded data'}
-        description={locale === 'zh' ? '这里是整个项目的操作中心：拖拽上传 CSV / JSON，切换 X / Y 字段、切换主题与图表类型，并立即看到结果。未上传数据时，图表类型切换会联动到更适合的默认样例。' : 'This is the control room for the project: upload CSV / JSON, switch X and Y fields, themes, and chart types, and see results immediately. When no file is uploaded, changing chart type swaps to a more suitable built-in sample.'}
-      />
-
-      <section className="grid gap-6 2xl:grid-cols-[0.34fr_0.66fr]">
+    <div className="page-shell py-8">
+      <div className="mb-6">
+        <div className="text-sm font-medium text-slate-500">{language === 'zh' ? '数据实验台' : 'Dataset playground'}</div>
+        <h1 className="mt-2 text-4xl font-semibold text-slate-900">{language === 'zh' ? '上传数据后，全站图表即时刷新' : 'Upload data and refresh the whole library instantly'}</h1>
+        <p className="mt-3 max-w-3xl text-base leading-7 text-slate-600">{language === 'zh' ? '默认使用不同图表各自的样例数据。上传后，图表库与预览面板都会切换到你的数据。' : 'Every chart has its own default dataset. After upload, previews switch to your data across the site.'}</p>
+      </div>
+      <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
         <div className="space-y-6">
           <UploadPanel />
-          <FieldMappingPanel />
-        </div>
-
-        <div className="space-y-6">
-          <section className="rounded-[28px] border border-slate-200/80 bg-white/88 p-6 shadow-soft">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-              <div>
-                <div className="text-xs uppercase tracking-[0.22em] text-slate-400">{t(locale, uiText.livePreview)}</div>
-                <h2 className="mt-2 text-2xl font-semibold text-slate-900">{t(locale, uiText.currentChartPreview)}</h2>
-              </div>
-              <select
-                value={chartId}
-                onChange={(event) => setChartId(event.target.value)}
-                className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-slate-400"
-              >
-                {chartCatalog.map((chart) => (
-                  <option key={chart.id} value={chart.id}>{t(locale, chartCopy[chart.id].name)}</option>
-                ))}
-              </select>
+          <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_20px_60px_rgba(15,23,42,0.05)]">
+            <div className="text-lg font-semibold text-slate-900">{language === 'zh' ? '选择图表类型' : 'Choose chart type'}</div>
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              {chartDefinitions.map((chart) => (
+                <button key={chart.id} type="button" onClick={() => setChartId(chart.id)} className={`rounded-[22px] border px-4 py-4 text-left transition ${chartId === chart.id ? 'bg-slate-900 text-white border-slate-900' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'}`}>
+                  <div className="text-lg font-semibold">{t(chart.title, language)}</div>
+                  <div className={`mt-2 text-sm ${chartId === chart.id ? 'text-slate-200' : 'text-slate-500'}`}>{t(chart.description, language)}</div>
+                </button>
+              ))}
             </div>
-
-            <div className="mt-6 h-[520px]">
-              <ChartComponent records={preview.records} xKey={preview.xKey} yKey={preview.yKey} numericKeys={preview.meta.numericKeys} theme={theme} title={t(locale, chartCopy[activeChart.id].title ?? chartCopy[activeChart.id].name)} />
-            </div>
-          </section>
-
-          <DatasetSummary records={preview.records} meta={preview.meta} yKey={preview.yKey} fileName={dataset.source === 'upload' ? dataset.fileName : `${chartId}-sample`} />
+          </div>
         </div>
-      </section>
+        <div className="rounded-[32px] border border-slate-200 bg-white p-7 shadow-[0_20px_60px_rgba(15,23,42,0.05)]">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <div className="text-sm font-medium text-slate-500">{language === 'zh' ? '当前预览' : 'Current preview'}</div>
+              <div className="mt-2 text-3xl font-semibold text-slate-900">{t(chartDefinitions.find((item) => item.id === chartId)!.title, language)}</div>
+              <div className="mt-3 text-base text-slate-600">{dataset.source === 'upload' ? (language === 'zh' ? '已切换到上传数据' : 'Switched to uploaded data') : (language === 'zh' ? '当前仍在使用内置默认数据' : 'Still using built-in defaults')}</div>
+            </div>
+          </div>
+          <div className="mt-6">
+            <ChartPreview chartId={chartId} records={dataset.records} xKey={dataset.xKey} yKey={dataset.yKey} theme={currentTheme} mode="detail" />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

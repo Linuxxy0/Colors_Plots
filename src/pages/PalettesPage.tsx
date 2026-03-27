@@ -1,61 +1,54 @@
 import { useMemo, useState } from 'react';
-import { PageIntro } from '@/components/common/PageIntro';
 import { PaletteCard } from '@/components/palettes/PaletteCard';
-import { PaletteDetailPanel } from '@/components/palettes/PaletteDetailPanel';
-import { useAppState } from '@/context/AppStateContext';
-import { getThemeById, themes, type ThemeCategory } from '@/themes/themes';
+import { PalettePreviewPanel } from '@/components/palettes/PalettePreviewPanel';
+import { useAppContext } from '@/context/AppContext';
+import { themes } from '@/themes/themes';
+import { t } from '@/utils/i18n';
 
 export function PalettesPage() {
-  const { locale, dataset, meta, xKey, yKey, themeId, setThemeId } = useAppState();
-  const [category, setCategory] = useState<ThemeCategory | 'all'>('all');
-  const categoryOptions: Array<{ label: string; value: ThemeCategory | 'all' }> = locale === 'zh'
-    ? [
-        { label: '全部', value: 'all' },
-        { label: '论文风', value: 'paper' },
-        { label: '极简风', value: 'minimal' },
-        { label: '深色风', value: 'dark' },
-      ]
-    : [
-        { label: 'All', value: 'all' },
-        { label: 'Paper', value: 'paper' },
-        { label: 'Minimal', value: 'minimal' },
-        { label: 'Dark', value: 'dark' },
-      ];
-  const filteredThemes = useMemo(() => themes.filter((theme) => category === 'all' || theme.category === category), [category]);
-  const activeTheme = getThemeById(themeId);
+  const { language, themeId, setThemeId } = useAppContext();
+  const [filter, setFilter] = useState<'all' | 'paper' | 'minimal' | 'dark'>('all');
+  const filteredThemes = useMemo(() => {
+    if (filter === 'all') return themes;
+    return themes.filter((theme) => theme.tags.some((tag) => {
+      const value = t(tag, 'en').toLowerCase();
+      return (filter === 'paper' && value.includes('paper')) || (filter === 'minimal' && value.includes('minimal')) || (filter === 'dark' && value.includes('dark'));
+    }));
+  }, [filter]);
+  const currentTheme = themes.find((theme) => theme.id === themeId) ?? themes[0];
+
+  const filterItems = [
+    ['all', language === 'zh' ? '全部' : 'All'],
+    ['paper', language === 'zh' ? '论文风' : 'Paper'],
+    ['minimal', language === 'zh' ? '极简' : 'Minimal'],
+    ['dark', language === 'zh' ? '深色' : 'Dark'],
+  ] as const;
 
   return (
-    <div className="space-y-6">
-      <PageIntro
-        eyebrow={locale === 'zh' ? '配色库' : 'Palette library'}
-        title={locale === 'zh' ? '真正的科研配色页' : 'A real scientific palette library'}
-        description={locale === 'zh' ? '这里不再只是展示几张宣传卡片，而是让你可以按风格筛选、查看色板、用图表迷你预览进行比较，并把某套主题设为全局主题。' : 'This is no longer a promo strip. Filter by style, inspect palettes, compare with chart previews, and set a theme globally.'}
-      />
-
-      <section className="rounded-[28px] border border-slate-200/80 bg-white/88 p-6 shadow-soft">
-        <div className="flex flex-wrap gap-3">
-          {categoryOptions.map((item) => (
-            <button
-              key={item.value}
-              onClick={() => setCategory(item.value)}
-              className={`rounded-full px-4 py-2 text-sm font-medium transition ${category === item.value ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
-            >
-              {item.label}
+    <div className="page-shell py-8">
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <div className="text-sm font-medium text-slate-500">{language === 'zh' ? '配色库' : 'Palette library'}</div>
+          <h1 className="mt-2 text-4xl font-semibold text-slate-900">{language === 'zh' ? '真实主题预览，而不是动态图表' : 'Real theme preview, not chart animation'}</h1>
+          <p className="mt-3 max-w-3xl text-base leading-7 text-slate-600">{language === 'zh' ? '左侧浏览主题，右侧查看主题在科研界面中的真实层级表现。' : 'Browse themes on the left and inspect real UI hierarchy on the right.'}</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {filterItems.map(([value, label]) => (
+            <button key={value} type="button" onClick={() => setFilter(value)} className={`rounded-full px-4 py-2 text-sm font-medium ${filter === value ? 'bg-slate-900 text-white' : 'bg-white text-slate-600 border border-slate-200'}`}>
+              {label}
             </button>
           ))}
         </div>
-      </section>
+      </div>
 
-      <section className="grid gap-6 2xl:grid-cols-[1.4fr_0.6fr]">
-        <div className="grid gap-4 xl:grid-cols-2 2xl:grid-cols-2">
+      <div className="grid gap-6 xl:grid-cols-[0.82fr_1.18fr]">
+        <aside className="space-y-4">
           {filteredThemes.map((palette) => (
-            <PaletteCard key={palette.id} theme={palette} selected={palette.id === themeId} onSelect={setThemeId} dataset={dataset} meta={meta} xKey={xKey} yKey={yKey} />
+            <PaletteCard key={palette.id} palette={palette} active={palette.id === themeId} onSelect={() => setThemeId(palette.id)} />
           ))}
-        </div>
-        <div className="2xl:sticky 2xl:top-28 2xl:self-start">
-          <PaletteDetailPanel theme={activeTheme} />
-        </div>
-      </section>
+        </aside>
+        <PalettePreviewPanel theme={currentTheme} />
+      </div>
     </div>
   );
 }

@@ -1,69 +1,72 @@
-export type ThemeCategory = 'paper' | 'minimal' | 'dark';
-
-export type ThemePalette = {
-  id: string;
-  name: string;
-  description: string;
-  category: ThemeCategory;
-  recommendedFor: string[];
-  accessibility: 'standard' | 'high-contrast';
-  background: string;
-  panel: string;
-  foreground: string;
-  muted: string;
-  border: string;
-  accent: string;
-  palette: string[];
-};
+import type { ThemePalette } from '@/types/app';
 
 export const themes: ThemePalette[] = [
   {
     id: 'classic-paper',
-    name: 'Classic Paper',
-    description: 'Low-saturation blue-gray palette for papers, benchmark plots, and reproducible research figures.',
-    category: 'paper',
-    recommendedFor: ['论文插图', 'benchmark 对比', '实验报告'],
-    accessibility: 'standard',
-    background: '#F8FAFC',
+    name: { zh: '经典论文蓝', en: 'Classic Paper' },
+    description: {
+      zh: '低饱和蓝灰科研主题，适合论文插图、结果图与实验汇报。',
+      en: 'Low-saturation blue-gray theme for papers, result figures, and research reporting.',
+    },
+    usage: { zh: '论文插图 / benchmark 结果', en: 'Paper figures / benchmark results' },
+    background: '#F7FAFC',
     panel: '#FFFFFF',
-    foreground: '#183046',
-    muted: '#64748B',
-    border: '#D9E2EC',
-    accent: '#1F3A5F',
-    palette: ['#1F3A5F', '#2C5F8A', '#3C8DAD', '#D9E2EC', '#E9C46A'],
+    foreground: '#17324A',
+    muted: '#6C7D90',
+    accent: '#2B517E',
+    success: '#4B8F8C',
+    warm: '#D4B15A',
+    palette: ['#1F3A5F', '#2C5F8A', '#4F82A8', '#C8D5E1', '#E3C56B'],
+    tags: [
+      { zh: '论文风', en: 'Paper style' },
+      { zh: '低饱和', en: 'Low saturation' },
+      { zh: '白底', en: 'Light background' },
+    ],
   },
   {
     id: 'nature-minimal',
-    name: 'Nature Minimal',
-    description: 'High whitespace, restrained contrast, and clean tones for elegant scientific stories.',
-    category: 'minimal',
-    recommendedFor: ['项目首页', '图表画廊', '研究叙事'],
-    accessibility: 'standard',
-    background: '#FBFCF8',
+    name: { zh: '极简自然白', en: 'Nature Minimal' },
+    description: {
+      zh: '留白更多、对比克制，适合配色库、图表画廊与叙事化研究展示。',
+      en: 'High whitespace and restrained contrast for palette libraries, chart galleries, and narrative research.',
+    },
+    usage: { zh: '图表库 / 项目主页', en: 'Chart library / project home' },
+    background: '#FAFBF7',
     panel: '#FFFFFF',
-    foreground: '#22313F',
-    muted: '#7B8794',
-    border: '#D8E3E7',
-    accent: '#2B4C7E',
-    palette: ['#2B4C7E', '#5B8FB9', '#86A8CF', '#D8E3E7', '#E5C07B'],
+    foreground: '#243340',
+    muted: '#7D8B97',
+    accent: '#446C96',
+    success: '#6C9A9B',
+    warm: '#D7B771',
+    palette: ['#2A4A77', '#5D83A9', '#8EAFCC', '#D9E3E7', '#E3C27D'],
+    tags: [
+      { zh: '极简', en: 'Minimal' },
+      { zh: '高留白', en: 'High whitespace' },
+      { zh: '画廊', en: 'Gallery' },
+    ],
   },
   {
     id: 'lab-dark',
-    name: 'Lab Dark',
-    description: 'Presentation-first dark mode for demos, projector slides, and lab meeting dashboards.',
-    category: 'dark',
-    recommendedFor: ['答辩投屏', 'lab meeting', '深色 dashboard'],
-    accessibility: 'high-contrast',
-    background: '#0F172A',
-    panel: '#162032',
-    foreground: '#E5EEF7',
-    muted: '#9FB3C8',
-    border: '#334155',
-    accent: '#8FB8FF',
-    palette: ['#8FB8FF', '#58D2E0', '#9E7CFF', '#F6AD55', '#334155'],
+    name: { zh: '实验室深色', en: 'Lab Dark' },
+    description: {
+      zh: '适合答辩投屏与深色工作台，强调亮色线条和科技感分层。',
+      en: 'Presentation-first dark theme with bright accents for lab meetings and dark dashboards.',
+    },
+    usage: { zh: '演示投屏 / 深色面板', en: 'Presentation / dark dashboard' },
+    background: '#101826',
+    panel: '#182335',
+    foreground: '#EAF1F8',
+    muted: '#95A9BE',
+    accent: '#76A8FF',
+    success: '#5BD3C8',
+    warm: '#F0B66B',
+    palette: ['#7DAAF9', '#5ED4DD', '#A287FF', '#F2BE72', '#344154'],
+    tags: [
+      { zh: '深色', en: 'Dark' },
+      { zh: '投屏', en: 'Projection' },
+      { zh: '高对比', en: 'High contrast' },
+    ],
   },
 ];
 
-export function getThemeById(themeId: string) {
-  return themes.find((theme) => theme.id === themeId) ?? themes[0];
-}
+export const defaultThemeId = themes[0].id;

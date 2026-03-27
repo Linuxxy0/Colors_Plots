@@ -1,78 +1,79 @@
-import { routeConfig } from '@/app/routes';
-import { EmptyState } from '@/components/common/EmptyState';
-import { PageIntro } from '@/components/common/PageIntro';
-import { StatPill } from '@/components/common/StatPill';
-import { ChartCatalogCard } from '@/components/charts/ChartCatalogCard';
-import { PaletteCard } from '@/components/palettes/PaletteCard';
-import { chartCatalog } from '@/data/chartCatalog';
-import { useAppState } from '@/context/AppStateContext';
-import { themes } from '@/themes/themes';
-import { routeLabels, t, themeCopy, uiText } from '@/i18n';
+import { Link } from 'react-router-dom';
+import { ChartPreview } from '@/components/charts';
+import { useAppContext } from '@/context/AppContext';
+import { chartDefinitions, homeStats } from '@/data/library';
+import { t } from '@/utils/i18n';
 
 export function HomePage() {
-  const { locale, theme, themeId, setThemeId, dataset, meta, xKey, yKey } = useAppState();
-  const featuredCharts = chartCatalog.slice(0, 3);
+  const { language, currentTheme, getChartDataset, uploadState } = useAppContext();
+  const previewCharts = chartDefinitions.slice(0, 3);
 
   return (
-    <div className="space-y-6">
-      <PageIntro
-        eyebrow={locale === 'zh' ? '资源入口' : 'Resource entry'}
-        title={locale === 'zh' ? '科研配色库与图表预览平台' : 'Academic palette and chart preview library'}
-        description={locale === 'zh' ? '首页现在只做入口，不再做宣传页。你可以从这里进入真实的配色库、图表库和数据实验台，并且所有页面共享当前主题与当前数据集。' : 'Home is now an entry point rather than a marketing landing page. Jump into the palette library, chart library, and dataset playground while sharing the same theme and dataset state across pages.'}
-        actions={
-          <>
-            <a href={routeConfig.palettes.href} className="button-primary">{t(locale, uiText.openPalettes)}</a>
-            <a href={routeConfig.charts.href} className="button-secondary">{t(locale, uiText.openCharts)}</a>
-            <a href={routeConfig.playground.href} className="button-secondary">{t(locale, uiText.openPlayground)}</a>
-          </>
-        }
-      />
-
-      <section className="grid gap-4 lg:grid-cols-4">
-        <StatPill label={t(locale, uiText.themeLabel)} value={t(locale, themeCopy[theme.id].name)} />
-        <StatPill label={locale === 'zh' ? '当前数据集' : 'Current dataset'} value={dataset.fileName} />
-        <StatPill label={t(locale, uiText.fields)} value={String(meta.keys.length)} />
-        <StatPill label={locale === 'zh' ? '当前映射' : 'Preview mapping'} value={`${xKey} / ${yKey}`} />
-      </section>
-
-      <section className="grid gap-6 lg:grid-cols-2">
-        <a href={routeConfig.palettes.href} className="rounded-[28px] border border-slate-200/80 bg-white/88 p-8 shadow-soft transition hover:-translate-y-0.5">
-          <span className="tag">{routeLabels.palettes[locale]}</span>
-          <h2 className="mt-4 text-2xl font-semibold text-slate-900">{locale === 'zh' ? '按科研场景浏览配色' : 'Browse palettes by research scenario'}</h2>
-          <p className="mt-3 text-sm leading-6 text-slate-600">{locale === 'zh' ? '按论文风、极简风、深色演示风筛选主题，查看迷你图表预览，并导出 CSS / JSON token。' : 'Filter themes by paper, minimal, or dark presentation styles. Preview charts and export CSS or JSON tokens.'}</p>
-        </a>
-        <a href={routeConfig.charts.href} className="rounded-[28px] border border-slate-200/80 bg-white/88 p-8 shadow-soft transition hover:-translate-y-0.5">
-          <span className="tag">{routeLabels.charts[locale]}</span>
-          <h2 className="mt-4 text-2xl font-semibold text-slate-900">{locale === 'zh' ? '按用途浏览图表' : 'Browse charts by use case'}</h2>
-          <p className="mt-3 text-sm leading-6 text-slate-600">{locale === 'zh' ? '按趋势、对比、分布、相关性、多指标分类查看图表，并直接预览默认数据或上传后的数据。' : 'Filter by trend, comparison, distribution, correlation, and multi-metric use cases, then preview with sample or uploaded data.'}</p>
-        </a>
-      </section>
-
-      <section className="grid gap-6 2xl:grid-cols-[1.15fr_0.85fr]">
-        <div className="space-y-4">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <h2 className="text-2xl font-semibold text-slate-900">{locale === 'zh' ? '推荐主题' : 'Recommended palettes'}</h2>
-              <p className="mt-2 text-sm text-slate-600">{locale === 'zh' ? '保留最常用的 3 套科研主题作为入口。' : 'Three frequently used scientific themes remain pinned here.'}</p>
-            </div>
-            <a href={routeConfig.palettes.href} className="text-sm font-medium text-slate-600 hover:text-slate-900">{t(locale, uiText.viewAll)}</a>
+    <div className="page-shell py-8">
+      <section className="grid gap-6 xl:grid-cols-[1fr_1.25fr]">
+        <div className="rounded-[32px] border border-slate-200 bg-white p-8 shadow-[0_20px_60px_rgba(15,23,42,0.05)]">
+          <div className="inline-flex rounded-full border border-slate-200 px-3 py-1 text-xs font-medium tracking-[0.18em] text-slate-500">
+            {language === 'zh' ? '科研配色库与图表预览' : 'Academic palette & chart library'}
           </div>
-          <div className="grid gap-4 xl:grid-cols-2 2xl:grid-cols-3">
-            {themes.map((palette) => (
-              <PaletteCard key={palette.id} theme={palette} selected={palette.id === themeId} onSelect={setThemeId} dataset={dataset} meta={meta} xKey={xKey} yKey={yKey} />
+          <h1 className="mt-5 text-5xl font-semibold tracking-tight text-slate-900">
+            {language === 'zh' ? '真正像资源库的科研可视化站点' : 'A library-style home for research visualization'}
+          </h1>
+          <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600">
+            {language === 'zh'
+              ? '首页只做入口；真正的配色浏览、图表预览和数据实验都拆成独立页面。默认中文，可一键切换英文。'
+              : 'The home page is only an entry. Palette browsing, chart preview, and dataset playground are split into dedicated pages with instant language switching.'}
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link to="/palettes" className="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800">{language === 'zh' ? '进入配色库' : 'Open palettes'}</Link>
+            <Link to="/charts" className="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">{language === 'zh' ? '进入图表库' : 'Open charts'}</Link>
+            <Link to="/playground" className="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">{language === 'zh' ? '进入实验台' : 'Open playground'}</Link>
+          </div>
+          <div className="mt-10 grid gap-4 md:grid-cols-3">
+            {homeStats.map((item) => (
+              <div key={item.value} className="rounded-[24px] bg-slate-50 p-4">
+                <div className="text-sm text-slate-500">{t(item.title, language)}</div>
+                <div className="mt-2 text-2xl font-semibold text-slate-900">{item.value}</div>
+              </div>
             ))}
           </div>
         </div>
 
-        <div className="space-y-4">
-          <div>
-            <h2 className="text-2xl font-semibold text-slate-900">{locale === 'zh' ? '热门图表' : 'Popular charts'}</h2>
-            <p className="mt-2 text-sm text-slate-600">{locale === 'zh' ? '最常用的三类图表作为入口，默认带动态高亮和 hover 反馈。' : 'Three popular chart types as entry points, now with motion and hover feedback by default.'}</p>
-          </div>
-          {featuredCharts.map((chart) => (
-            <ChartCatalogCard key={chart.id} chart={chart} dataset={dataset} meta={meta} xKey={xKey} yKey={yKey} theme={theme} onOpen={() => { window.location.hash = routeConfig.charts.href; }} />
-          ))}
-          {!featuredCharts.length ? <EmptyState title={t(locale, uiText.noCharts)} description={t(locale, uiText.noChartsDesc)} /> : null}
+        <div className="grid gap-5 lg:grid-cols-3">
+          {previewCharts.map((chart) => {
+            const dataset = getChartDataset(chart.id);
+            return (
+              <div key={chart.id} className="rounded-[30px] border border-slate-200 bg-white p-5 shadow-[0_20px_60px_rgba(15,23,42,0.05)]">
+                <div className="mb-4 flex items-center justify-between">
+                  <div>
+                    <div className="text-2xl font-semibold text-slate-900">{t(chart.title, language)}</div>
+                    <div className="mt-1 text-sm text-slate-500">{t(chart.description, language)}</div>
+                  </div>
+                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">{t(chart.tag, language)}</span>
+                </div>
+                <ChartPreview chartId={chart.id} records={dataset.records} xKey={dataset.xKey} yKey={dataset.yKey} theme={currentTheme} mode="card" />
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="mt-8 grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+        <div className="rounded-[32px] border border-slate-200 bg-white p-7 shadow-[0_20px_60px_rgba(15,23,42,0.05)]">
+          <div className="text-sm font-medium text-slate-500">{language === 'zh' ? '当前状态' : 'Current status'}</div>
+          <div className="mt-3 text-3xl font-semibold text-slate-900">{uploadState.source === 'upload' ? uploadState.fileName : language === 'zh' ? '当前使用内置默认数据' : 'Using built-in default datasets'}</div>
+          <p className="mt-4 max-w-3xl text-base leading-7 text-slate-600">
+            {language === 'zh'
+              ? '不同图表会在默认状态下使用更合适的样例数据；上传数据后，图表库与实验台都会同步改用你的数据。'
+              : 'Each chart uses a more suitable built-in dataset by default. After upload, the chart library and playground switch to your data together.'}
+          </p>
+        </div>
+        <div className="rounded-[32px] border border-slate-200 bg-white p-7 shadow-[0_20px_60px_rgba(15,23,42,0.05)]">
+          <div className="text-sm font-medium text-slate-500">{language === 'zh' ? '项目方式' : 'Project style'}</div>
+          <ul className="mt-4 space-y-3 text-base leading-7 text-slate-700">
+            <li>{language === 'zh' ? '首页只做入口，不再是宣传页。' : 'Home is only an entry point, not a marketing page.'}</li>
+            <li>{language === 'zh' ? '配色页强调真实主题预览，而不是图表动效。' : 'The palettes page focuses on real theme preview, not chart motion.'}</li>
+            <li>{language === 'zh' ? '图表交互基于鼠标悬停动态反馈。' : 'Chart interaction is driven by hover-based dynamic feedback.'}</li>
+          </ul>
         </div>
       </section>
     </div>

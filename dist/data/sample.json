@@ -1,0 +1,6 @@
+[
+  {"model": "CNN", "accuracy": 0.86, "latency": 68, "params_m": 24},
+  {"model": "ViT", "accuracy": 0.89, "latency": 81, "params_m": 38},
+  {"model": "GNN", "accuracy": 0.84, "latency": 74, "params_m": 29},
+  {"model": "MLP", "accuracy": 0.82, "latency": 60, "params_m": 19}
+]

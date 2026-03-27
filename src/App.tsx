@@ -1,112 +1,30 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useHashRoute } from '@/app/useHashRoute';
-import { AppStateProvider } from '@/context/AppStateContext';
-import { defaultDataset } from '@/data/defaultDataset';
-import { AppShell } from '@/layout/AppShell';
-import { ChartsPage } from '@/pages/ChartsPage';
+import { Navigate, Route, Routes } from 'react-router-dom';
+import { TopNav } from '@/components/layout/TopNav';
 import { HomePage } from '@/pages/HomePage';
 import { PalettesPage } from '@/pages/PalettesPage';
+import { ChartsPage } from '@/pages/ChartsPage';
 import { PlaygroundPage } from '@/pages/PlaygroundPage';
-import { getThemeById } from '@/themes/themes';
-import type { DatasetMeta, DatasetState } from '@/types/dataset';
-import type { Locale } from '@/i18n';
-import { getDatasetMeta, parseCsv, parseJson, toCsv } from '@/utils/dataset';
-
-const defaultState: DatasetState = {
-  records: defaultDataset,
-  source: 'default',
-  fileName: 'scivizlab-sample.csv',
-};
-
-function downloadBlob(filename: string, content: string, type: string) {
-  const blob = new Blob([content], { type });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
-  link.click();
-  URL.revokeObjectURL(link.href);
-}
+import { useAppContext } from '@/context/AppContext';
 
 export default function App() {
-  const route = useHashRoute();
-  const [dataset, setDataset] = useState<DatasetState>(defaultState);
-  const meta = useMemo<DatasetMeta>(() => getDatasetMeta(dataset.records), [dataset.records]);
-  const [xKey, setXKey] = useState(meta.xKey);
-  const [yKey, setYKey] = useState(meta.yKey);
-  const [error, setError] = useState('');
-  const [themeId, setThemeId] = useState(() => localStorage.getItem('scivizlab-theme') ?? 'classic-paper');
-  const [locale, setLocale] = useState<Locale>(() => (localStorage.getItem('scivizlab-locale') as Locale) ?? 'zh');
-
-  useEffect(() => {
-    localStorage.setItem('scivizlab-theme', themeId);
-  }, [themeId]);
-
-  useEffect(() => {
-    localStorage.setItem('scivizlab-locale', locale);
-    document.documentElement.lang = locale === 'zh' ? 'zh-CN' : 'en';
-  }, [locale]);
-
-  const safeXKey = meta.keys.includes(xKey) ? xKey : meta.xKey;
-  const safeYKey = meta.numericKeys.includes(yKey) ? yKey : meta.yKey;
-  const theme = getThemeById(themeId);
-
-  const applyRecords = (records: DatasetState['records'], fileName: string, source: DatasetState['source']) => {
-    const nextMeta = getDatasetMeta(records);
-    setDataset({ records, fileName, source });
-    setXKey(nextMeta.xKey);
-    setYKey(nextMeta.yKey);
-    setError('');
-  };
-
-  const handleFileSelect = async (file: File) => {
-    try {
-      const text = await file.text();
-      const isJson = file.name.toLowerCase().endsWith('.json');
-      const records = isJson ? parseJson(text) : parseCsv(text);
-      if (records.length < 2) throw new Error(locale === 'zh' ? '上传的数据至少需要 2 行。' : 'The uploaded data needs at least 2 rows.');
-      const nextMeta = getDatasetMeta(records);
-      if (!nextMeta.numericKeys.length) throw new Error(locale === 'zh' ? '上传的数据需要至少 1 个数值字段。' : 'The uploaded data needs at least 1 numeric field.');
-      applyRecords(records, file.name, 'upload');
-    } catch (uploadError) {
-      setError(uploadError instanceof Error ? uploadError.message : locale === 'zh' ? '上传失败，请检查文件格式。' : 'Upload failed. Please check the file format.');
-    }
-  };
-
-  const value = {
-    locale,
-    setLocale,
-    theme,
-    themeId,
-    setThemeId,
-    dataset,
-    meta,
-    xKey: safeXKey,
-    yKey: safeYKey,
-    setXKey,
-    setYKey,
-    error,
-    onFileSelect: handleFileSelect,
-    onResetDataset: () => applyRecords(defaultState.records, defaultState.fileName, 'default'),
-    onDownloadSampleCsv: () => downloadBlob('scivizlab-sample.csv', toCsv(defaultDataset), 'text/csv;charset=utf-8'),
-    onDownloadSampleJson: () => downloadBlob('scivizlab-sample.json', JSON.stringify(defaultDataset, null, 2), 'application/json;charset=utf-8'),
-  };
-
-  const page = (() => {
-    switch (route) {
-      case 'palettes':
-        return <PalettesPage />;
-      case 'charts':
-        return <ChartsPage />;
-      case 'playground':
-        return <PlaygroundPage />;
-      default:
-        return <HomePage />;
-    }
-  })();
+  const { currentTheme } = useAppContext();
 
   return (
-    <AppStateProvider value={value}>
-      <AppShell route={route}>{page}</AppShell>
-    </AppStateProvider>
+    <div
+      className="min-h-screen"
+      style={{
+        background: `radial-gradient(circle at top left, ${currentTheme.accent}14, transparent 22%), linear-gradient(180deg, ${currentTheme.background} 0%, #FFFFFF 22%, ${currentTheme.background} 100%)`,
+        color: currentTheme.foreground,
+      }}
+    >
+      <TopNav />
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/palettes" element={<PalettesPage />} />
+        <Route path="/charts" element={<ChartsPage />} />
+        <Route path="/playground" element={<PlaygroundPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </div>
   );
 }
