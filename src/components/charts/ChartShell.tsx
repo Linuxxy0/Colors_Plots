@@ -4,11 +4,10 @@ type ChartShellProps = {
   title: string;
   subtitle?: string;
   compact?: boolean;
-  badge?: string;
   children: ReactNode;
 };
 
-export function ChartShell({ title, subtitle, compact = false, badge = 'preview', children }: ChartShellProps) {
+export function ChartShell({ title, subtitle, compact = false, children }: ChartShellProps) {
   return (
     <div className={`glass-card ${compact ? 'p-4' : 'p-5'} h-full`}>
       <div className="mb-4 flex items-start justify-between gap-4">
@@ -17,7 +16,7 @@ export function ChartShell({ title, subtitle, compact = false, badge = 'preview'
           {subtitle ? <p className="mt-1 text-xs text-slate-500">{subtitle}</p> : null}
         </div>
         <div className="rounded-full border border-slate-200 px-2 py-1 text-[10px] font-medium uppercase tracking-[0.2em] text-slate-400">
-          {badge}
+          preview
         </div>
       </div>
       {children}
