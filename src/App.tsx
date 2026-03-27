@@ -1,95 +1,30 @@
-import { useMemo, useState } from 'react';
-import { defaultDataset } from '@/data/defaultDataset';
-import type { DatasetMeta, DatasetState } from '@/types/dataset';
-import { getDatasetMeta, parseCsv, parseJson } from '@/utils/dataset';
-import {
-  ChartGallerySection,
-  DashboardDemoSection,
-  DataPlaygroundSection,
-  DocsRoadmapSection,
-  Footer,
-  HeroSection,
-  HighlightsSection,
-  Navbar,
-  QuickStartSection,
-  ThemeShowcaseSection,
-  UseCasesSection,
-} from '@/components/sections';
-
-const defaultState: DatasetState = {
-  records: defaultDataset,
-  source: 'default',
-  fileName: 'scivizlab-sample.csv',
-};
+import { Navigate, Route, Routes } from 'react-router-dom';
+import { TopNav } from '@/components/layout/TopNav';
+import { HomePage } from '@/pages/HomePage';
+import { PalettesPage } from '@/pages/PalettesPage';
+import { ChartsPage } from '@/pages/ChartsPage';
+import { PlaygroundPage } from '@/pages/PlaygroundPage';
+import { useAppContext } from '@/context/AppContext';
 
 export default function App() {
-  const [dataset, setDataset] = useState<DatasetState>(defaultState);
-  const meta = useMemo<DatasetMeta>(() => getDatasetMeta(dataset.records), [dataset.records]);
-  const [xKey, setXKey] = useState(meta.xKey);
-  const [yKey, setYKey] = useState(meta.yKey);
-  const [error, setError] = useState('');
-
-  const safeXKey = meta.keys.includes(xKey) ? xKey : meta.xKey;
-  const safeYKey = meta.numericKeys.includes(yKey) ? yKey : meta.yKey;
-
-  const applyRecords = (records: DatasetState['records'], fileName: string, source: DatasetState['source']) => {
-    const nextMeta = getDatasetMeta(records);
-    setDataset({ records, fileName, source });
-    setXKey(nextMeta.xKey);
-    setYKey(nextMeta.yKey);
-    setError('');
-  };
-
-  const handleFileSelect = async (file: File) => {
-    try {
-      const text = await file.text();
-      const isJson = file.name.toLowerCase().endsWith('.json');
-      const records = isJson ? parseJson(text) : parseCsv(text);
-      if (records.length < 2) {
-        throw new Error('上传的数据至少需要 2 行。');
-      }
-      const nextMeta = getDatasetMeta(records);
-      if (!nextMeta.numericKeys.length) {
-        throw new Error('上传的数据需要至少 1 个数值字段。');
-      }
-      applyRecords(records, file.name, 'upload');
-    } catch (uploadError) {
-      setError(uploadError instanceof Error ? uploadError.message : '上传失败，请检查文件格式。');
-    }
-  };
-
-  const handleReset = () => {
-    applyRecords(defaultState.records, defaultState.fileName, 'default');
-  };
+  const { currentTheme } = useAppContext();
 
   return (
-    <div className="min-h-screen">
-      <Navbar />
-      <main>
-        <HeroSection records={dataset.records} xKey={safeXKey} yKey={safeYKey} numericKeys={meta.numericKeys} />
-        <HighlightsSection />
-        <ThemeShowcaseSection records={dataset.records} xKey={safeXKey} yKey={safeYKey} numericKeys={meta.numericKeys} />
-        <DataPlaygroundSection
-          records={dataset.records}
-          keys={meta.keys}
-          numericKeys={meta.numericKeys}
-          xKey={safeXKey}
-          yKey={safeYKey}
-          source={dataset.source}
-          fileName={dataset.fileName}
-          error={error}
-          onXKeyChange={setXKey}
-          onYKeyChange={setYKey}
-          onReset={handleReset}
-          onFileSelect={handleFileSelect}
-        />
-        <ChartGallerySection records={dataset.records} xKey={safeXKey} yKey={safeYKey} numericKeys={meta.numericKeys} />
-        <DashboardDemoSection records={dataset.records} xKey={safeXKey} yKey={safeYKey} numericKeys={meta.numericKeys} />
-        <UseCasesSection />
-        <QuickStartSection />
-        <DocsRoadmapSection />
-      </main>
-      <Footer />
+    <div
+      className="min-h-screen"
+      style={{
+        background: `radial-gradient(circle at top left, ${currentTheme.accent}14, transparent 22%), linear-gradient(180deg, ${currentTheme.background} 0%, #FFFFFF 22%, ${currentTheme.background} 100%)`,
+        color: currentTheme.foreground,
+      }}
+    >
+      <TopNav />
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/palettes" element={<PalettesPage />} />
+        <Route path="/charts" element={<ChartsPage />} />
+        <Route path="/playground" element={<PlaygroundPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </div>
   );
 }

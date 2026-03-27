@@ -1,20 +1,16 @@
-import type { DatasetMeta, DatasetRecord, DatasetValue } from '@/types/dataset';
+import type { DatasetMeta, DatasetRecord, DatasetValue } from '@/types/app';
 
-const AUTO_X_PREFERRED = ['epoch', 'step', 'time', 'date', 'round', 'iteration'];
-const AUTO_Y_PREFERRED = ['accuracy', 'score', 'f1', 'auc', 'precision', 'recall', 'loss'];
+const AUTO_X_PREFERRED = ['epoch', 'step', 'time', 'date', 'model', 'group', 'round', 'iteration'];
+const AUTO_Y_PREFERRED = ['accuracy', 'score', 'f1', 'auc', 'precision', 'recall', 'loss', 'latency'];
 
-function toNumber(value: DatasetValue): number | null {
-  if (typeof value === 'number' && Number.isFinite(value)) {
-    return value;
-  }
-
+export function toNumber(value: DatasetValue): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
   if (typeof value === 'string') {
     const trimmed = value.trim();
     if (!trimmed) return null;
     const parsed = Number(trimmed);
     return Number.isFinite(parsed) ? parsed : null;
   }
-
   return null;
 }
 
@@ -22,12 +18,19 @@ export function toDisplay(value: DatasetValue): string {
   if (value === null || value === undefined) return '—';
   if (typeof value === 'number') {
     if (Math.abs(value) >= 1000) return value.toLocaleString();
-    return Number.isInteger(value) ? String(value) : value.toFixed(value < 1 ? 3 : 2).replace(/0+$/, '').replace(/\.$/, '');
+    if (Math.abs(value) <= 1 && !Number.isInteger(value)) return value.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+    return value.toFixed(Number.isInteger(value) ? 0 : 2).replace(/0+$/, '').replace(/\.$/, '');
   }
   return String(value);
 }
 
-export function cleanKey(input: string, fallback: string) {
+export function formatMetric(value: number) {
+  if (Math.abs(value) <= 1) return value.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+  if (Math.abs(value) >= 1000) return value.toLocaleString();
+  return value.toFixed(1).replace(/0+$/, '').replace(/\.$/, '');
+}
+
+function cleanKey(input: string, fallback: string) {
   const normalized = input
     .trim()
     .replace(/^"|"$/g, '')
@@ -36,23 +39,12 @@ export function cleanKey(input: string, fallback: string) {
     .replace(/_+/g, '_')
     .replace(/^_+|_+$/g, '')
     .toLowerCase();
-
   return normalized || fallback;
 }
 
 function normalizeCell(value: unknown): DatasetValue {
-  if (value === null || value === undefined || value === '') {
-    return null;
-  }
-
-  if (typeof value === 'number') {
-    return Number.isFinite(value) ? value : null;
-  }
-
-  if (typeof value === 'boolean') {
-    return value ? 1 : 0;
-  }
-
+  if (value === null || value === undefined || value === '') return null;
+  if (typeof value === 'number') return Number.isFinite(value) ? value : null;
   const text = String(value).trim();
   if (!text) return null;
   const numeric = Number(text);
@@ -62,56 +54,24 @@ function normalizeCell(value: unknown): DatasetValue {
 export function normalizeRecords(rows: Record<string, unknown>[]): DatasetRecord[] {
   return rows
     .map((row, rowIndex) => {
-      const entries = Object.entries(row).map(([key, value], keyIndex) => [cleanKey(key, `field_${keyIndex + 1}`), normalizeCell(value)] as const);
-      if (entries.length === 0) {
-        return null;
-      }
-
       const record: DatasetRecord = {};
-      for (const [key, value] of entries) {
-        record[key] = value;
-      }
-      if (!record.row_id) {
-        record.row_id = rowIndex + 1;
-      }
+      Object.entries(row).forEach(([key, value], index) => {
+        record[cleanKey(key, `field_${index + 1}`)] = normalizeCell(value);
+      });
+      if (!Object.keys(record).length) return null;
+      record.row_id = rowIndex + 1;
       return record;
     })
     .filter((item): item is DatasetRecord => item !== null);
-}
-
-export function parseCsv(text: string): DatasetRecord[] {
-  const lines = text
-    .replace(/^\uFEFF/, '')
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean);
-
-  if (lines.length < 2) {
-    throw new Error('CSV 至少需要表头和一行数据。');
-  }
-
-  const headers = splitCsvLine(lines[0]).map((header, index) => cleanKey(header, `field_${index + 1}`));
-  const records = lines.slice(1).map((line) => {
-    const cells = splitCsvLine(line);
-    const record: Record<string, unknown> = {};
-    headers.forEach((header, index) => {
-      record[header] = cells[index] ?? null;
-    });
-    return record;
-  });
-
-  return normalizeRecords(records);
 }
 
 function splitCsvLine(line: string): string[] {
   const cells: string[] = [];
   let current = '';
   let insideQuotes = false;
-
   for (let i = 0; i < line.length; i += 1) {
     const char = line[i];
     const next = line[i + 1];
-
     if (char === '"') {
       if (insideQuotes && next === '"') {
         current += '"';
@@ -121,18 +81,34 @@ function splitCsvLine(line: string): string[] {
       }
       continue;
     }
-
     if (char === ',' && !insideQuotes) {
       cells.push(current.trim());
       current = '';
       continue;
     }
-
     current += char;
   }
-
   cells.push(current.trim());
   return cells;
+}
+
+export function parseCsv(text: string): DatasetRecord[] {
+  const lines = text
+    .replace(/^\uFEFF/, '')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  if (lines.length < 2) throw new Error('CSV 至少需要表头和一行数据。');
+  const headers = splitCsvLine(lines[0]).map((header, index) => cleanKey(header, `field_${index + 1}`));
+  const rows = lines.slice(1).map((line) => {
+    const cells = splitCsvLine(line);
+    const record: Record<string, unknown> = {};
+    headers.forEach((header, index) => {
+      record[header] = cells[index] ?? null;
+    });
+    return record;
+  });
+  return normalizeRecords(rows);
 }
 
 export function parseJson(text: string): DatasetRecord[] {
@@ -142,18 +118,13 @@ export function parseJson(text: string): DatasetRecord[] {
   } catch {
     throw new Error('JSON 解析失败，请确认文件内容为合法 JSON。');
   }
-
   let rows: Record<string, unknown>[] = [];
   if (Array.isArray(parsed)) {
     rows = parsed.filter((item): item is Record<string, unknown> => typeof item === 'object' && item !== null);
   } else if (parsed && typeof parsed === 'object' && Array.isArray((parsed as { data?: unknown }).data)) {
     rows = (parsed as { data: unknown[] }).data.filter((item): item is Record<string, unknown> => typeof item === 'object' && item !== null);
   }
-
-  if (!rows.length) {
-    throw new Error('JSON 需要是对象数组，或包含 data 字段的对象数组。');
-  }
-
+  if (!rows.length) throw new Error('JSON 需要是对象数组，或包含 data 字段的对象数组。');
   return normalizeRecords(rows);
 }
 
@@ -161,60 +132,22 @@ export function getDatasetMeta(records: DatasetRecord[]): DatasetMeta {
   const keys = Array.from(new Set(records.flatMap((record) => Object.keys(record)).filter((key) => key !== 'row_id')));
   const numericKeys = keys.filter((key) => records.some((record) => toNumber(record[key]) !== null));
   const categoricalKeys = keys.filter((key) => !numericKeys.includes(key));
-
   const xKey =
     AUTO_X_PREFERRED.find((key) => keys.includes(key)) ??
     categoricalKeys[0] ??
     numericKeys[0] ??
     keys[0] ??
     'row_id';
-
   const yKey =
     AUTO_Y_PREFERRED.find((key) => numericKeys.includes(key)) ??
     numericKeys.find((key) => key !== xKey) ??
     numericKeys[0] ??
     xKey;
-
   return { keys, numericKeys, categoricalKeys, xKey, yKey };
-}
-
-export function getSeries(records: DatasetRecord[], xKey: string, yKey: string, limit = 8) {
-  return records.slice(0, limit).map((record, index) => ({
-    index,
-    x: toDisplay(record[xKey] ?? index + 1),
-    xValue: toNumber(record[xKey]) ?? index + 1,
-    yValue: toNumber(record[yKey]) ?? 0,
-  }));
 }
 
 export function getNumericValues(records: DatasetRecord[], key: string) {
   return records.map((record) => toNumber(record[key])).filter((value): value is number => value !== null);
-}
-
-export function summarizeDataset(records: DatasetRecord[], yKey: string) {
-  const values = getNumericValues(records, yKey);
-  const latest = values.length ? values[values.length - 1] : 0;
-  const previous = values.length > 1 ? values[values.length - 2] : latest;
-  const average = values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
-  const delta = latest - previous;
-
-  return {
-    latest,
-    previous,
-    average,
-    delta,
-    count: records.length,
-  };
-}
-
-export function formatMetric(value: number) {
-  if (Math.abs(value) >= 1000) {
-    return value.toLocaleString();
-  }
-  if (value <= 1 && value >= -1) {
-    return `${(value * 100).toFixed(1)}%`;
-  }
-  return value.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
 }
 
 export function percentile(values: number[], p: number) {
@@ -223,10 +156,7 @@ export function percentile(values: number[], p: number) {
   const pos = (sorted.length - 1) * p;
   const base = Math.floor(pos);
   const rest = pos - base;
-  if (sorted[base + 1] !== undefined) {
-    return sorted[base] + rest * (sorted[base + 1] - sorted[base]);
-  }
-  return sorted[base];
+  return sorted[base + 1] !== undefined ? sorted[base] + rest * (sorted[base + 1] - sorted[base]) : sorted[base];
 }
 
 export function pearson(valuesA: number[], valuesB: number[]) {
@@ -236,7 +166,6 @@ export function pearson(valuesA: number[], valuesB: number[]) {
   const b = valuesB.slice(0, size);
   const meanA = a.reduce((sum, value) => sum + value, 0) / size;
   const meanB = b.reduce((sum, value) => sum + value, 0) / size;
-
   let numerator = 0;
   let sumA = 0;
   let sumB = 0;
@@ -247,7 +176,6 @@ export function pearson(valuesA: number[], valuesB: number[]) {
     sumA += diffA ** 2;
     sumB += diffB ** 2;
   }
-
   const denominator = Math.sqrt(sumA * sumB);
   return denominator ? numerator / denominator : 0;
 }
@@ -259,6 +187,5 @@ export function toCsv(records: DatasetRecord[]) {
     const text = String(value);
     return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
   };
-
-  return [keys.join(','), ...records.map((record) => keys.map((key) => escape(record[key] ?? null)).join(','))].join('\n');
+  return [keys.join(','), ...records.map((record) => keys.map((key) => escape(record[key])).join(','))].join('\n');
 }
