@@ -1,4 +1,3 @@
-import type { ThemePalette } from '@/themes/themes';
 import type { DatasetRecord } from '@/types/dataset';
 
 export type DatasetChartProps = {
@@ -8,5 +7,4 @@ export type DatasetChartProps = {
   xKey: string;
   yKey: string;
   numericKeys?: string[];
-  theme?: ThemePalette;
 };
