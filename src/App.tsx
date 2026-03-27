@@ -9,6 +9,7 @@ import { PalettesPage } from '@/pages/PalettesPage';
 import { PlaygroundPage } from '@/pages/PlaygroundPage';
 import { getThemeById } from '@/themes/themes';
 import type { DatasetMeta, DatasetState } from '@/types/dataset';
+import type { Locale } from '@/i18n';
 import { getDatasetMeta, parseCsv, parseJson, toCsv } from '@/utils/dataset';
 
 const defaultState: DatasetState = {
@@ -34,10 +35,16 @@ export default function App() {
   const [yKey, setYKey] = useState(meta.yKey);
   const [error, setError] = useState('');
   const [themeId, setThemeId] = useState(() => localStorage.getItem('scivizlab-theme') ?? 'classic-paper');
+  const [locale, setLocale] = useState<Locale>(() => (localStorage.getItem('scivizlab-locale') as Locale) ?? 'zh');
 
   useEffect(() => {
     localStorage.setItem('scivizlab-theme', themeId);
   }, [themeId]);
+
+  useEffect(() => {
+    localStorage.setItem('scivizlab-locale', locale);
+    document.documentElement.lang = locale === 'zh' ? 'zh-CN' : 'en';
+  }, [locale]);
 
   const safeXKey = meta.keys.includes(xKey) ? xKey : meta.xKey;
   const safeYKey = meta.numericKeys.includes(yKey) ? yKey : meta.yKey;
@@ -56,16 +63,18 @@ export default function App() {
       const text = await file.text();
       const isJson = file.name.toLowerCase().endsWith('.json');
       const records = isJson ? parseJson(text) : parseCsv(text);
-      if (records.length < 2) throw new Error('上传的数据至少需要 2 行。');
+      if (records.length < 2) throw new Error(locale === 'zh' ? '上传的数据至少需要 2 行。' : 'The uploaded data needs at least 2 rows.');
       const nextMeta = getDatasetMeta(records);
-      if (!nextMeta.numericKeys.length) throw new Error('上传的数据需要至少 1 个数值字段。');
+      if (!nextMeta.numericKeys.length) throw new Error(locale === 'zh' ? '上传的数据需要至少 1 个数值字段。' : 'The uploaded data needs at least 1 numeric field.');
       applyRecords(records, file.name, 'upload');
     } catch (uploadError) {
-      setError(uploadError instanceof Error ? uploadError.message : '上传失败，请检查文件格式。');
+      setError(uploadError instanceof Error ? uploadError.message : locale === 'zh' ? '上传失败，请检查文件格式。' : 'Upload failed. Please check the file format.');
     }
   };
 
   const value = {
+    locale,
+    setLocale,
     theme,
     themeId,
     setThemeId,

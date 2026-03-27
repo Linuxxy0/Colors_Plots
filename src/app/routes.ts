@@ -1,10 +1,10 @@
 export type AppRoute = 'home' | 'palettes' | 'charts' | 'playground';
 
-export const routeConfig: Record<AppRoute, { label: string; href: string; description: string }> = {
-  home: { label: 'Home', href: '#/', description: '入口页' },
-  palettes: { label: 'Palettes', href: '#/palettes', description: '科研配色库' },
-  charts: { label: 'Charts', href: '#/charts', description: '图表预览库' },
-  playground: { label: 'Playground', href: '#/playground', description: '数据实验台' },
+export const routeConfig: Record<AppRoute, { href: string; description: string }> = {
+  home: { href: '#/', description: '入口页' },
+  palettes: { href: '#/palettes', description: '科研配色库' },
+  charts: { href: '#/charts', description: '图表预览库' },
+  playground: { href: '#/playground', description: '数据实验台' },
 };
 
 export function getRouteFromHash(hash: string): AppRoute {

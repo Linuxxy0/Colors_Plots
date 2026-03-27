@@ -1,8 +1,11 @@
 import { createContext, useContext } from 'react';
 import type { ThemePalette } from '@/themes/themes';
 import type { DatasetMeta, DatasetState } from '@/types/dataset';
+import type { Locale } from '@/i18n';
 
 export type AppStateValue = {
+  locale: Locale;
+  setLocale: (locale: Locale) => void;
   theme: ThemePalette;
   themeId: string;
   setThemeId: (themeId: string) => void;

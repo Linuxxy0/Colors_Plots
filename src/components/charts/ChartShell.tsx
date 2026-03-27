@@ -9,12 +9,13 @@ type ChartShellProps = {
   badge?: string;
   theme?: ThemePalette;
   children: ReactNode;
+  info?: ReactNode;
 };
 
-export function ChartShell({ title, subtitle, compact = false, badge = 'preview', theme = themes[0], children }: ChartShellProps) {
+export function ChartShell({ title, subtitle, compact = false, badge = 'preview', theme = themes[0], children, info }: ChartShellProps) {
   return (
     <div
-      className={`h-full rounded-3xl border shadow-sm ${compact ? 'p-4' : 'p-5'}`}
+      className={`flex h-full flex-col rounded-3xl border shadow-sm ${compact ? 'p-4' : 'p-5'}`}
       style={{
         backgroundColor: theme.panel,
         borderColor: hexToRgba(theme.foreground, 0.12),
@@ -43,7 +44,8 @@ export function ChartShell({ title, subtitle, compact = false, badge = 'preview'
           {badge}
         </div>
       </div>
-      {children}
+      <div className="min-h-0 flex-1">{children}</div>
+      {info ? <div className="mt-4">{info}</div> : null}
     </div>
   );
 }

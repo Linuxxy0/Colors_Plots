@@ -17,7 +17,7 @@ html {
 
 body {
   margin: 0;
-  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-family: Inter, 'PingFang SC', 'Microsoft YaHei', ui-sans-serif, system-ui, sans-serif;
   background:
     radial-gradient(circle at top left, rgba(44, 95, 138, 0.08), transparent 25%),
     linear-gradient(180deg, #f8fbfd 0%, #ffffff 18%, #f8fafc 100%);
@@ -32,13 +32,33 @@ body {
   background: rgba(44, 95, 138, 0.18);
 }
 
+@keyframes chartFadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes chartGrow {
+  from { transform: scaleY(0.2); opacity: 0.4; }
+  to { transform: scaleY(1); opacity: 1; }
+}
+
+@keyframes chartDraw {
+  from { stroke-dashoffset: 420; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes chartPulse {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.15); opacity: 1; }
+}
+
 @layer components {
   .section-shell {
-    @apply px-6 sm:px-8 lg:px-10;
+    @apply w-full px-4 sm:px-6 xl:px-8 2xl:px-10;
   }
 
   .section-inner {
-    @apply mx-auto max-w-content;
+    @apply w-full;
   }
 
   .section-title {
@@ -46,7 +66,7 @@ body {
   }
 
   .section-copy {
-    @apply mt-4 max-w-2xl text-base leading-7 text-slate-600;
+    @apply mt-4 max-w-3xl text-base leading-7 text-slate-600;
   }
 
   .glass-card {
@@ -63,5 +83,27 @@ body {
 
   .button-secondary {
     @apply inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-slate-400;
+  }
+
+  .chart-fade-up {
+    animation: chartFadeUp 0.55s ease both;
+  }
+
+  .chart-draw {
+    stroke-dasharray: 420;
+    stroke-dashoffset: 420;
+    animation: chartDraw 1s ease forwards;
+  }
+
+  .chart-bar {
+    transform-box: fill-box;
+    transform-origin: center bottom;
+    animation: chartGrow 0.7s ease both;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+
+  .chart-point {
+    animation: chartPulse 1.6s ease-in-out infinite;
+    transition: transform 0.2s ease, opacity 0.2s ease;
   }
 }

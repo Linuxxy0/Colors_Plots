@@ -10,12 +10,12 @@ export function AppShell({ route, children }: { route: AppRoute; children: React
     <div
       className="min-h-screen"
       style={{
-        background: `radial-gradient(circle at top left, ${hexToRgba(theme.palette[1], 0.14)}, transparent 24%), linear-gradient(180deg, ${theme.background} 0%, #ffffff 100%)`,
+        background: `radial-gradient(circle at top left, ${hexToRgba(theme.palette[1], 0.15)}, transparent 22%), radial-gradient(circle at top right, ${hexToRgba(theme.palette[0], 0.08)}, transparent 18%), linear-gradient(180deg, ${theme.background} 0%, #ffffff 100%)`,
         color: theme.foreground,
       }}
     >
       <TopNav currentRoute={route} />
-      <main className="section-shell py-8 sm:py-10">
+      <main className="section-shell py-6 sm:py-8 lg:py-10">
         <div className="section-inner space-y-6 sm:space-y-8">{children}</div>
       </main>
     </div>

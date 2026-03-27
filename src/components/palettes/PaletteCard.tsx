@@ -1,19 +1,27 @@
 import { BarChartCard, LineChartCard } from '@/components/charts';
 import type { ThemePalette } from '@/themes/themes';
-import type { DatasetRecord } from '@/types/dataset';
+import type { DatasetMeta, DatasetState } from '@/types/dataset';
 import { hexToRgba } from '@/utils/colors';
+import { useAppState } from '@/context/AppStateContext';
+import { t, themeCopy, uiText, chartCopy } from '@/i18n';
+import { getChartPreviewInput } from '@/data/chartPreviewData';
 
 type PaletteCardProps = {
   theme: ThemePalette;
   selected: boolean;
   onSelect: (themeId: string) => void;
-  records: DatasetRecord[];
+  dataset: DatasetState;
+  meta: DatasetMeta;
   xKey: string;
   yKey: string;
-  numericKeys: string[];
 };
 
-export function PaletteCard({ theme, selected, onSelect, records, xKey, yKey, numericKeys }: PaletteCardProps) {
+export function PaletteCard({ theme, selected, onSelect, dataset, meta, xKey, yKey }: PaletteCardProps) {
+  const { locale } = useAppState();
+  const themeText = themeCopy[theme.id];
+  const linePreview = getChartPreviewInput('line', dataset, meta, xKey, yKey);
+  const barPreview = getChartPreviewInput('bar', dataset, meta, xKey, yKey);
+
   return (
     <article
       className="rounded-[28px] border p-5 transition"
@@ -25,14 +33,14 @@ export function PaletteCard({ theme, selected, onSelect, records, xKey, yKey, nu
     >
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h3 className="text-xl font-semibold" style={{ color: theme.foreground }}>{theme.name}</h3>
-          <p className="mt-2 text-sm leading-6" style={{ color: theme.muted }}>{theme.description}</p>
+          <h3 className="text-xl font-semibold" style={{ color: theme.foreground }}>{t(locale, themeText.name)}</h3>
+          <p className="mt-2 text-sm leading-6" style={{ color: theme.muted }}>{t(locale, themeText.description)}</p>
         </div>
         <span
           className="rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em]"
           style={{ borderColor: hexToRgba(theme.foreground, 0.16), color: theme.muted }}
         >
-          {theme.category}
+          {t(locale, themeText.category)}
         </span>
       </div>
 
@@ -43,12 +51,12 @@ export function PaletteCard({ theme, selected, onSelect, records, xKey, yKey, nu
       </div>
 
       <div className="mt-6 grid gap-4 xl:grid-cols-2">
-        <LineChartCard compact records={records} xKey={xKey} yKey={yKey} numericKeys={numericKeys} theme={theme} title="Line Preview" />
-        <BarChartCard compact records={records} xKey={xKey} yKey={yKey} numericKeys={numericKeys} theme={theme} title="Bar Preview" />
+        <LineChartCard compact records={linePreview.records} xKey={linePreview.xKey} yKey={linePreview.yKey} numericKeys={linePreview.meta.numericKeys} theme={theme} title={t(locale, chartCopy.line.name)} />
+        <BarChartCard compact records={barPreview.records} xKey={barPreview.xKey} yKey={barPreview.yKey} numericKeys={barPreview.meta.numericKeys} theme={theme} title={t(locale, chartCopy.bar.name)} />
       </div>
 
       <div className="mt-6 flex flex-wrap gap-2">
-        {theme.recommendedFor.map((item) => (
+        {themeText.recommendedFor[locale].map((item) => (
           <span key={item} className="rounded-full px-3 py-1 text-xs" style={{ backgroundColor: hexToRgba(theme.foreground, 0.05), color: theme.muted }}>
             {item}
           </span>
@@ -57,10 +65,10 @@ export function PaletteCard({ theme, selected, onSelect, records, xKey, yKey, nu
 
       <div className="mt-6 flex gap-3">
         <button className="button-primary" onClick={() => onSelect(theme.id)}>
-          {selected ? '当前主题' : '设为全局主题'}
+          {selected ? t(locale, uiText.activeThemeButton) : t(locale, uiText.setGlobalTheme)}
         </button>
         <button className="button-secondary" onClick={() => onSelect(theme.id)}>
-          Preview
+          {t(locale, uiText.preview)}
         </button>
       </div>
     </article>
