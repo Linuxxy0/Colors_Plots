@@ -1,24 +1,53 @@
-# SciVizLab Project Overview
+# Project Overview
 
-SciVizLab 是一个面向科研场景的前端可视化项目模板，强调三件事：
+## Positioning
 
-1. 科研风配色
-2. 多元图表展示
-3. 默认数据与上传数据兼容
+SciVizLab is a research-oriented visualization resource library, not a marketing landing page.
 
-## 当前版本能力
+The interface is split into dedicated pages so users can:
 
-- 结构化首页
-- 6 类科研常用图表
-- 3 套科研主题配色
-- 默认数据预览
-- CSV / JSON 拖拽上传
-- 示例数据下载
-- GitHub Pages 自动部署
+1. browse scientific color systems,
+2. browse chart previews by purpose,
+3. test their own data with the built-in playground.
 
-## 推荐使用方式
+## Main pages
 
-- 作为 GitHub 项目演示页
-- 作为课程/科研作品集首页
-- 作为实验结果展示页的基础模板
-- 继续扩展为完整数据可视化系统
+### Home
+A lightweight entry page with links into the palette library, chart library, and dataset playground.
+
+### Palettes
+A real theme browser:
+- category filtering
+- color strip preview
+- mini chart previews
+- set global theme
+- export JSON / copy CSS tokens
+
+### Charts
+A real chart library:
+- category filter
+- search
+- chart cards
+- detail preview panel
+- global dataset + theme synchronization
+
+### Playground
+An operation-first page:
+- drag-and-drop upload
+- reset to defaults
+- sample dataset download
+- field mapping
+- live preview
+
+## Shared state
+
+The app uses a shared state provider so all pages stay in sync:
+
+- `currentTheme`
+- `currentDataset`
+- `xKey`
+- `yKey`
+
+## Deployment
+
+Hash-based routing is used so the app works cleanly on GitHub Pages without server-side rewrites.

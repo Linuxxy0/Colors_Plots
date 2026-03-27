@@ -1,14 +1,15 @@
+import { themes } from '@/themes/themes';
 import { getNumericValues, pearson } from '@/utils/dataset';
 import type { DatasetChartProps } from './chartTypes';
 import { ChartShell } from './ChartShell';
+import { hexToRgba } from '@/utils/colors';
 
-function correlationColor(value: number) {
+function correlationColor(value: number, positive: string, negative: string) {
   const alpha = Math.min(Math.abs(value), 1);
-  const positive = value >= 0;
-  return positive ? `rgba(44,95,138,${0.18 + alpha * 0.62})` : `rgba(233,196,106,${0.18 + alpha * 0.62})`;
+  return value >= 0 ? hexToRgba(positive, 0.18 + alpha * 0.62) : hexToRgba(negative, 0.18 + alpha * 0.62);
 }
 
-export function HeatmapCard({ title = 'Correlation Heatmap', compact, records, numericKeys = [] }: DatasetChartProps) {
+export function HeatmapCard({ title = 'Correlation Heatmap', compact, records, numericKeys = [], theme = themes[0] }: DatasetChartProps) {
   const keys = numericKeys.slice(0, 4);
   const matrix = keys.map((rowKey) =>
     keys.map((colKey) => {
@@ -18,14 +19,18 @@ export function HeatmapCard({ title = 'Correlation Heatmap', compact, records, n
   );
 
   return (
-    <ChartShell title={title} subtitle="Numeric feature correlation" compact={compact} badge="auto">
+    <ChartShell title={title} subtitle="Numeric feature correlation" compact={compact} badge="auto" theme={theme}>
       <div className="grid h-full grid-cols-4 gap-3">
         {matrix.flatMap((row, rowIndex) =>
           row.map((value, colIndex) => (
             <div
               key={`${rowIndex}-${colIndex}`}
-              className="rounded-2xl border border-white/50"
-              style={{ backgroundColor: correlationColor(value), minHeight: compact ? '36px' : '52px' }}
+              className="rounded-2xl border"
+              style={{
+                borderColor: hexToRgba(theme.foreground, 0.08),
+                backgroundColor: correlationColor(value, theme.palette[1], theme.palette[4] ?? theme.palette[3]),
+                minHeight: compact ? '36px' : '52px',
+              }}
               title={`${keys[rowIndex]} / ${keys[colIndex]}: ${value.toFixed(2)}`}
             />
           )),
