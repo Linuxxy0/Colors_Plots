@@ -6,14 +6,14 @@ export const chartDefinitions: ChartDefinition[] = [
     title: { zh: '折线图', en: 'Line Chart' },
     shortTitle: { zh: '趋势', en: 'Trend' },
     description: {
-      zh: '适合训练过程、收敛曲线、时间序列实验追踪。',
+      zh: '适合训练过程、收敛曲线和时间序列实验追踪。',
       en: 'Best for training curves, convergence, and time-series experiment tracking.',
     },
     tag: { zh: '趋势', en: 'Trend' },
     useCases: [
       { zh: '训练趋势', en: 'Training trend' },
       { zh: '收敛曲线', en: 'Convergence' },
-      { zh: 'epoch 对比', en: 'Epoch comparison' },
+      { zh: 'Epoch 对比', en: 'Epoch comparison' },
     ],
     fieldRequirement: { zh: '横轴 + 数值纵轴', en: 'X axis + numeric Y axis' },
     defaultXKey: 'epoch',
@@ -30,8 +30,8 @@ export const chartDefinitions: ChartDefinition[] = [
     tag: { zh: '对比', en: 'Compare' },
     useCases: [
       { zh: '模型对比', en: 'Model comparison' },
-      { zh: 'benchmark', en: 'Benchmark' },
-      { zh: 'ablation', en: 'Ablation' },
+      { zh: 'Benchmark', en: 'Benchmark' },
+      { zh: '消融实验', en: 'Ablation' },
     ],
     fieldRequirement: { zh: '类别横轴 + 数值纵轴', en: 'Categorical X + numeric Y' },
     defaultXKey: 'model',
@@ -42,7 +42,7 @@ export const chartDefinitions: ChartDefinition[] = [
     title: { zh: '热力图', en: 'Heatmap' },
     shortTitle: { zh: '相关性', en: 'Correlation' },
     description: {
-      zh: '适合相关矩阵、模块交互与消融实验矩阵。',
+      zh: '适合相关矩阵、模块交互和消融实验矩阵。',
       en: 'Best for correlation matrices, module interactions, and ablation grids.',
     },
     tag: { zh: '相关性', en: 'Correlation' },
@@ -110,15 +110,6 @@ export const chartDefinitions: ChartDefinition[] = [
     defaultYKey: 'f1',
   },
 ];
-
-export const paletteFilters = {
-  style: [
-    { zh: '全部', en: 'All', value: 'all' },
-    { zh: '论文风', en: 'Paper', value: 'paper' },
-    { zh: '极简', en: 'Minimal', value: 'minimal' },
-    { zh: '深色', en: 'Dark', value: 'dark' },
-  ],
-};
 
 export const defaultDatasets: Record<ChartKind, DatasetRecord[]> = {
   line: [

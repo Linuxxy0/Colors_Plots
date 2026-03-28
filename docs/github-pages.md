@@ -1,25 +1,23 @@
 # GitHub Pages Deployment Guide
 
-SciVizLab 已经预置了 GitHub Pages 所需的静态站点与自动部署配置，并支持默认数据展示、拖拽上传与示例数据下载。
+SciVizLab 已经包含 GitHub Pages 所需的构建和部署配置，可以直接使用 GitHub Actions 自动发布。
 
-## 已包含内容
+## 已包含的配置
 
-- `vite.config.ts` 使用 `base: './'`，适配 GitHub Pages 的项目路径
-- `.github/workflows/deploy.yml`：推送到 `main` 后自动构建并部署
-- `public/.nojekyll`：避免 Jekyll 对静态资源的额外处理
-- `public/data/scivizlab-sample.csv`
-- `public/data/scivizlab-sample.json`
-- `package-lock.json`：工作流可直接使用 `npm ci`
+- `vite.config.ts` 使用 `base: './'`，适配仓库路径部署
+- `.github/workflows/deploy.yml` 在推送到 `main` 时自动构建和发布
+- `public/.nojekyll` 防止静态资源被 Jekyll 额外处理
+- `package-lock.json` 可直接配合 `npm ci`
 
-## 使用步骤
+## 部署步骤
 
-1. 将整个项目推送到你的 GitHub 仓库
-2. 打开仓库设置：`Settings -> Pages`
-3. 在 `Build and deployment` 中，将 `Source` 设为 `GitHub Actions`
+1. 将项目推送到 GitHub 仓库
+2. 打开 `Settings -> Pages`
+3. 在 `Build and deployment` 中将 `Source` 设置为 `GitHub Actions`
 4. 确保默认分支为 `main`
-5. 推送代码后，等待 Actions 执行完成
+5. 再次推送代码，等待 Actions 执行完成
 
-## 本地构建
+## 本地构建验证
 
 ```bash
 npm install
@@ -27,18 +25,16 @@ npm run build
 npm run preview
 ```
 
-## 数据上传说明
+## 关于数据上传
 
-这个项目的数据上传完全运行在浏览器端，因此：
+这个项目的数据上传完全在浏览器端执行，因此：
 
 - 可以直接部署到 GitHub Pages
 - 不需要额外后端服务
-- 上传 CSV / JSON 后即可刷新页面中的图表模块
-- 刷新页面后会回到默认示例数据，这是静态站点的预期行为
+- 上传 CSV / JSON 后会立即刷新全站图表预览
+- 刷新页面后会回到默认样例数据，这属于静态站点的预期行为
 
-## 上线后的访问地址
+## 发布后访问地址
 
-- 用户/组织主页仓库：`https://<username>.github.io/`
-- 项目仓库页面：`https://<username>.github.io/<repo-name>/`
-
-由于项目使用相对路径资源配置，作为普通项目仓库部署也可以直接工作。
+- 用户或组织主页仓库：`https://<username>.github.io/`
+- 普通项目仓库：`https://<username>.github.io/<repo-name>/`

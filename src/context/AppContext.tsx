@@ -26,7 +26,6 @@ type AppContextValue = {
 };
 
 const emptyMeta = getDatasetMeta(defaultDatasets.line);
-
 const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
@@ -48,11 +47,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const applyUpload = async (file: File) => {
     const text = await file.text();
+
     try {
       const isJson = file.name.toLowerCase().endsWith('.json');
       const nextRecords = isJson ? parseJson(text) : parseCsv(text);
       const meta = getDatasetMeta(nextRecords);
-      if (!meta.numericKeys.length) throw new Error(language === 'zh' ? '至少需要一个数值字段。' : 'At least one numeric field is required.');
+
+      if (!meta.numericKeys.length) {
+        throw new Error(language === 'zh' ? '至少需要一个数值字段。' : 'At least one numeric field is required.');
+      }
+
       setRecords(nextRecords);
       setFileName(file.name);
       setError('');
@@ -78,6 +82,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         fileName,
       };
     }
+
     const definitionMap: Record<ChartKind, { xKey: string; yKey: string }> = {
       line: { xKey: 'epoch', yKey: 'score' },
       bar: { xKey: 'model', yKey: 'accuracy' },
@@ -86,6 +91,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       boxplot: { xKey: 'group', yKey: 'score' },
       radar: { xKey: 'accuracy', yKey: 'f1' },
     };
+
     return {
       records: defaultDatasets[chartId],
       xKey: definitionMap[chartId].xKey,

@@ -32,7 +32,7 @@ export function ChartsPage() {
           </h1>
           <p className="mt-3 max-w-3xl text-base leading-7 text-slate-600">
             {language === 'zh'
-              ? '默认使用各图表更合适的样例数据。鼠标悬停到图元时，底部信息会实时变化。'
+              ? '默认使用每种图表更合适的样例数据。把鼠标悬停到图元上，底部信息会实时变化。'
               : 'Each chart uses a more suitable sample dataset. Hover chart marks to update the info panel in real time.'}
           </p>
         </div>
@@ -49,6 +49,7 @@ export function ChartsPage() {
           {filteredCharts.map((chart) => {
             const dataset = getChartDataset(chart.id);
             const active = selected === chart.id;
+
             return (
               <article
                 key={chart.id}
@@ -60,19 +61,10 @@ export function ChartsPage() {
                     <div className="text-3xl font-semibold text-slate-900">{t(chart.title, language)}</div>
                     <p className="mt-2 text-base leading-7 text-slate-500">{t(chart.description, language)}</p>
                   </div>
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">
-                    {t(chart.tag, language)}
-                  </span>
+                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">{t(chart.tag, language)}</span>
                 </div>
                 <div className="mt-5">
-                  <ChartPreview
-                    chartId={chart.id}
-                    records={dataset.records}
-                    xKey={dataset.xKey}
-                    yKey={dataset.yKey}
-                    theme={currentTheme}
-                    mode="card"
-                  />
+                  <ChartPreview chartId={chart.id} records={dataset.records} xKey={dataset.xKey} yKey={dataset.yKey} theme={currentTheme} mode="card" />
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {chart.useCases.map((item) => (
@@ -83,11 +75,7 @@ export function ChartsPage() {
                 </div>
                 <div className="mt-5 flex items-center justify-between gap-3 text-sm text-slate-500">
                   <span>{t(chart.fieldRequirement, language)}</span>
-                  <button
-                    type="button"
-                    onClick={() => setSelected(chart.id)}
-                    className="rounded-2xl bg-slate-900 px-5 py-3 font-semibold text-white transition hover:bg-slate-800"
-                  >
+                  <button type="button" onClick={() => setSelected(chart.id)} className="rounded-2xl bg-slate-900 px-5 py-3 font-semibold text-white transition hover:bg-slate-800">
                     {language === 'zh' ? '切换预览' : 'Preview'}
                   </button>
                 </div>
@@ -113,25 +101,17 @@ export function ChartsPage() {
               <div className="rounded-[24px] bg-slate-50 p-5">
                 <div className="text-sm font-medium text-slate-500">{language === 'zh' ? '数据来源' : 'Data source'}</div>
                 <div className="mt-3 text-lg font-semibold text-slate-900">
-                  {previewDataset.source === 'upload'
-                    ? language === 'zh'
-                      ? '上传数据'
-                      : 'Uploaded dataset'
-                    : language === 'zh'
-                      ? '默认样例'
-                      : 'Built-in sample'}
+                  {previewDataset.source === 'upload' ? (language === 'zh' ? '上传数据' : 'Uploaded dataset') : language === 'zh' ? '默认样例' : 'Built-in sample'}
                 </div>
                 <div className="mt-2 text-sm text-slate-500">
-                  {previewDataset.source === 'upload'
-                    ? previewDataset.fileName
-                    : language === 'zh'
-                      ? '为当前图表单独准备'
-                      : 'Prepared specifically for this chart'}
+                  {previewDataset.source === 'upload' ? previewDataset.fileName : language === 'zh' ? '为当前图表单独准备' : 'Prepared specifically for this chart'}
                 </div>
               </div>
               <div className="rounded-[24px] bg-slate-50 p-5">
                 <div className="text-sm font-medium text-slate-500">{language === 'zh' ? '字段组合' : 'Field mapping'}</div>
-                <div className="mt-3 text-lg font-semibold text-slate-900">{previewDataset.xKey} / {previewDataset.yKey}</div>
+                <div className="mt-3 text-lg font-semibold text-slate-900">
+                  {previewDataset.xKey} / {previewDataset.yKey}
+                </div>
                 <div className="mt-2 text-sm text-slate-500">{t(selectedDefinition.fieldRequirement, language)}</div>
               </div>
               <div className="rounded-[24px] bg-slate-50 p-5">
@@ -152,7 +132,7 @@ export function ChartsPage() {
                   ? `当前正在使用你上传的数据：${previewDataset.fileName}`
                   : `Currently using your uploaded dataset: ${previewDataset.fileName}`
                 : language === 'zh'
-                  ? '当前使用为该图表单独准备的默认样例数据。把鼠标放到图元上，下面数值会立即变化。'
+                  ? '当前使用的是为该图表单独准备的默认样例数据。把鼠标放到图元上，下面的数值会立即变化。'
                   : 'Currently using a built-in sample dataset for this chart. Hover the chart marks to update the values below.'}
             </div>
 

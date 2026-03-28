@@ -5,10 +5,10 @@ export const themes: ThemePalette[] = [
     id: 'classic-paper',
     name: { zh: '经典论文蓝', en: 'Classic Paper' },
     description: {
-      zh: '低饱和蓝灰科研主题，适合论文插图、结果图与实验汇报。',
+      zh: '低饱和蓝灰研究主题，适合论文插图、结果展示和实验汇报。',
       en: 'Low-saturation blue-gray theme for papers, result figures, and research reporting.',
     },
-    usage: { zh: '论文插图 / benchmark 结果', en: 'Paper figures / benchmark results' },
+    usage: { zh: '论文插图 / Benchmark 结果', en: 'Paper figures / benchmark results' },
     background: '#F7FAFC',
     panel: '#FFFFFF',
     foreground: '#17324A',
@@ -20,14 +20,14 @@ export const themes: ThemePalette[] = [
     tags: [
       { zh: '论文风', en: 'Paper style' },
       { zh: '低饱和', en: 'Low saturation' },
-      { zh: '白底', en: 'Light background' },
+      { zh: '浅色背景', en: 'Light background' },
     ],
   },
   {
     id: 'nature-minimal',
-    name: { zh: '极简自然白', en: 'Nature Minimal' },
+    name: { zh: '自然极简', en: 'Nature Minimal' },
     description: {
-      zh: '留白更多、对比克制，适合配色库、图表画廊与叙事化研究展示。',
+      zh: '高留白、克制对比的配色，适合项目主页、图表画廊和叙事型展示。',
       en: 'High whitespace and restrained contrast for palette libraries, chart galleries, and narrative research.',
     },
     usage: { zh: '图表库 / 项目主页', en: 'Chart library / project home' },
@@ -42,17 +42,17 @@ export const themes: ThemePalette[] = [
     tags: [
       { zh: '极简', en: 'Minimal' },
       { zh: '高留白', en: 'High whitespace' },
-      { zh: '画廊', en: 'Gallery' },
+      { zh: '画廊感', en: 'Gallery' },
     ],
   },
   {
     id: 'lab-dark',
     name: { zh: '实验室深色', en: 'Lab Dark' },
     description: {
-      zh: '适合答辩投屏与深色工作台，强调亮色线条和科技感分层。',
+      zh: '面向投屏和深色控制台的主题，强调亮色数据和清晰层级。',
       en: 'Presentation-first dark theme with bright accents for lab meetings and dark dashboards.',
     },
-    usage: { zh: '演示投屏 / 深色面板', en: 'Presentation / dark dashboard' },
+    usage: { zh: '答辩投屏 / 深色面板', en: 'Presentation / dark dashboard' },
     background: '#101826',
     panel: '#182335',
     foreground: '#EAF1F8',

@@ -13,6 +13,7 @@ export function BoxplotPreview({ records, xKey, yKey, theme, mode = 'card' }: Ch
       if (value === null) return;
       buckets.set(key, [...(buckets.get(key) ?? []), value]);
     });
+
     return Array.from(buckets.entries()).slice(0, 3).map(([group, values]) => {
       const sorted = [...values].sort((a, b) => a - b);
       return {
@@ -25,7 +26,14 @@ export function BoxplotPreview({ records, xKey, yKey, theme, mode = 'card' }: Ch
       };
     });
   }, [records, xKey, yKey]);
-  const [info, setInfo] = useState<HoverInfo>({ primaryLabel: xKey, primaryValue: groups[0]?.group ?? '—', secondaryLabel: yKey, secondaryValue: formatMetric(groups[0]?.median ?? 0) });
+
+  const [info, setInfo] = useState<HoverInfo>({
+    primaryLabel: xKey,
+    primaryValue: groups[0]?.group ?? '--',
+    secondaryLabel: yKey,
+    secondaryValue: formatMetric(groups[0]?.median ?? 0),
+  });
+
   const globalMin = Math.min(...groups.map((group) => group.min), 0);
   const globalMax = Math.max(...groups.map((group) => group.max), 1);
   const width = mode === 'detail' ? 420 : 320;
@@ -39,10 +47,22 @@ export function BoxplotPreview({ records, xKey, yKey, theme, mode = 'card' }: Ch
         {groups.map((group, index) => {
           const x = 90 + index * (mode === 'detail' ? 110 : 86);
           const active = info.primaryValue === group.group;
+
           return (
-            <g key={group.group} onMouseEnter={() => setInfo({ primaryLabel: xKey, primaryValue: group.group, secondaryLabel: `${yKey} median`, secondaryValue: formatMetric(group.median) })}>
+            <g
+              key={group.group}
+              onMouseEnter={() => setInfo({ primaryLabel: xKey, primaryValue: group.group, secondaryLabel: `${yKey} median`, secondaryValue: formatMetric(group.median) })}
+            >
               <line x1={x} y1={scale(group.max)} x2={x} y2={scale(group.min)} stroke={theme.foreground} strokeWidth="3" />
-              <rect x={x - 24} y={scale(group.q3)} width="48" height={Math.max(scale(group.q1) - scale(group.q3), 16)} rx="14" fill={active ? theme.success : theme.palette[index % theme.palette.length]} opacity="0.82" />
+              <rect
+                x={x - 24}
+                y={scale(group.q3)}
+                width="48"
+                height={Math.max(scale(group.q1) - scale(group.q3), 16)}
+                rx="14"
+                fill={active ? theme.success : theme.palette[index % theme.palette.length]}
+                opacity="0.82"
+              />
               <line x1={x - 24} y1={scale(group.median)} x2={x + 24} y2={scale(group.median)} stroke={theme.foreground} strokeWidth="3" />
               <line x1={x - 16} y1={scale(group.max)} x2={x + 16} y2={scale(group.max)} stroke={theme.foreground} strokeWidth="3" />
               <line x1={x - 16} y1={scale(group.min)} x2={x + 16} y2={scale(group.min)} stroke={theme.foreground} strokeWidth="3" />

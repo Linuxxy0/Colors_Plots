@@ -12,6 +12,7 @@ const labels = {
 
 export function TopNav() {
   const { language, toggleLanguage } = useAppContext();
+
   const navItems = [
     { to: '/', label: labels.home[language] },
     { to: '/palettes', label: labels.palettes[language] },
@@ -52,7 +53,11 @@ export function TopNav() {
           </a>
         </nav>
 
-        <button type="button" onClick={toggleLanguage} className="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50">
+        <button
+          type="button"
+          onClick={toggleLanguage}
+          className="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+        >
           {labels.language[language]}
         </button>
       </div>

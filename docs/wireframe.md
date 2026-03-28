@@ -1,19 +1,14 @@
 # Homepage Wireframe
 
-## Desktop layout
+## Current Page Model
 
-- Header
-- Hero
-- Highlights
-- Theme Showcase
-- Chart Gallery Preview
-- Dashboard Demo
-- Use Cases
-- Quick Start
-- Docs / Roadmap
-- Footer
+- Top navigation
+- Home overview
+- Palette library
+- Chart library
+- Dataset playground
 
-## Suggested canvas
+## Suggested Canvas
 
 - Width: 1440px
 - Content width: 1200px
@@ -23,4 +18,4 @@
 
 ## Notes
 
-This repository already implements the wireframe as modular React sections. You can use this file as a reference when redesigning the UI in Figma.
+The current implementation no longer uses the older section-based landing page structure. This file is now a lightweight reference for future redesign work.

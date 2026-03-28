@@ -24,7 +24,14 @@ export function HeatmapPreview({ records, theme, mode = 'card' }: ChartPreviewPr
       ),
     [keys, records],
   );
-  const [info, setInfo] = useState<HoverInfo>({ primaryLabel: 'pair', primaryValue: `${cells[0]?.rowKey ?? ''} / ${cells[0]?.colKey ?? ''}`, secondaryLabel: 'corr', secondaryValue: formatMetric(cells[0]?.value ?? 0) });
+
+  const [info, setInfo] = useState<HoverInfo>({
+    primaryLabel: 'pair',
+    primaryValue: `${cells[0]?.rowKey ?? ''} / ${cells[0]?.colKey ?? ''}`,
+    secondaryLabel: 'corr',
+    secondaryValue: formatMetric(cells[0]?.value ?? 0),
+  });
+
   const size = mode === 'detail' ? 72 : 56;
 
   return (
@@ -40,7 +47,7 @@ export function HeatmapPreview({ records, theme, mode = 'card' }: ChartPreviewPr
               className="rounded-[20px] border transition"
               style={{
                 height: size,
-                backgroundColor: colorByValue(cell.value, theme.accent.replace('#', '#'), theme.warm.replace('#', '#')),
+                backgroundColor: colorByValue(cell.value, theme.accent, theme.warm),
                 borderColor: active ? theme.foreground : `${theme.muted}22`,
                 boxShadow: active ? `0 0 0 2px ${theme.foreground}12 inset` : 'none',
               }}

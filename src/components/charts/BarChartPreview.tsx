@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { HoverInfo } from '@/types/app';
-import { formatMetric, toDisplay, toNumber } from '@/utils/dataset';
+import { formatMetric, toNumber, toDisplay } from '@/utils/dataset';
 import type { ChartPreviewProps } from './types';
 import { PreviewShell } from './PreviewShell';
 
@@ -9,7 +9,14 @@ export function BarChartPreview({ records, xKey, yKey, theme, mode = 'card' }: C
     () => records.slice(0, mode === 'detail' ? 6 : 5).map((record, index) => ({ index, label: toDisplay(record[xKey]), value: toNumber(record[yKey]) ?? 0 })),
     [mode, records, xKey, yKey],
   );
-  const [info, setInfo] = useState<HoverInfo>({ primaryLabel: xKey, primaryValue: items[0]?.label ?? '—', secondaryLabel: yKey, secondaryValue: formatMetric(items[0]?.value ?? 0) });
+
+  const [info, setInfo] = useState<HoverInfo>({
+    primaryLabel: xKey,
+    primaryValue: items[0]?.label ?? '--',
+    secondaryLabel: yKey,
+    secondaryValue: formatMetric(items[0]?.value ?? 0),
+  });
+
   const maxY = Math.max(...items.map((item) => item.value), 1);
   const width = mode === 'detail' ? 420 : 320;
   const height = mode === 'detail' ? 250 : 180;
@@ -27,6 +34,7 @@ export function BarChartPreview({ records, xKey, yKey, theme, mode = 'card' }: C
           const barHeight = Math.max((item.value / maxY) * (height - 80), 20);
           const y = baseY - barHeight;
           const active = info.primaryValue === item.label;
+
           return (
             <g key={item.label} onMouseEnter={() => setInfo({ primaryLabel: xKey, primaryValue: item.label, secondaryLabel: yKey, secondaryValue: formatMetric(item.value) })}>
               <rect x={startX - 4} y={y - 4} width={barWidth + 8} height={barHeight + 8} rx="16" fill={theme.foreground} fillOpacity={active ? 0.07 : 0} />

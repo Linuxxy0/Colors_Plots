@@ -6,10 +6,23 @@ import { PreviewShell } from './PreviewShell';
 
 export function ScatterPreview({ records, xKey, yKey, theme, mode = 'card' }: ChartPreviewProps) {
   const points = useMemo(
-    () => records.slice(0, mode === 'detail' ? 7 : 6).map((record, index) => ({ index, label: toDisplay(record.model ?? record.label ?? index + 1), x: toNumber(record[xKey]) ?? index + 1, y: toNumber(record[yKey]) ?? 0 })),
+    () =>
+      records.slice(0, mode === 'detail' ? 7 : 6).map((record, index) => ({
+        index,
+        label: toDisplay(record.model ?? record.label ?? index + 1),
+        x: toNumber(record[xKey]) ?? index + 1,
+        y: toNumber(record[yKey]) ?? 0,
+      })),
     [mode, records, xKey, yKey],
   );
-  const [info, setInfo] = useState<HoverInfo>({ primaryLabel: xKey, primaryValue: formatMetric(points[0]?.x ?? 0), secondaryLabel: yKey, secondaryValue: formatMetric(points[0]?.y ?? 0) });
+
+  const [info, setInfo] = useState<HoverInfo>({
+    primaryLabel: xKey,
+    primaryValue: formatMetric(points[0]?.x ?? 0),
+    secondaryLabel: yKey,
+    secondaryValue: formatMetric(points[0]?.y ?? 0),
+  });
+
   const width = mode === 'detail' ? 420 : 320;
   const height = mode === 'detail' ? 250 : 180;
   const xValues = points.map((point) => point.x);
@@ -32,6 +45,7 @@ export function ScatterPreview({ records, xKey, yKey, theme, mode = 'card' }: Ch
           const cx = plotLeft + ((point.x - xMin) / ((xMax - xMin) || 1)) * plotWidth;
           const cy = plotTop + plotHeight - ((point.y - yMin) / ((yMax - yMin) || 1)) * plotHeight;
           const active = info.primaryValue === formatMetric(point.x) && info.secondaryValue === formatMetric(point.y);
+
           return (
             <g key={point.label} onMouseEnter={() => setInfo({ primaryLabel: xKey, primaryValue: formatMetric(point.x), secondaryLabel: yKey, secondaryValue: formatMetric(point.y) })}>
               <circle cx={cx} cy={cy} r={active ? 15 : 10} fill={index % 2 === 0 ? theme.accent : theme.warm} fillOpacity={active ? 0.2 : 0.12} />

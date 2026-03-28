@@ -16,7 +16,9 @@ export function UploadPanel() {
       <div className="flex items-center justify-between gap-3">
         <div>
           <div className="text-lg font-semibold text-slate-900">{language === 'zh' ? '数据上传' : 'Dataset Upload'}</div>
-          <div className="mt-1 text-sm text-slate-500">{language === 'zh' ? '支持 CSV / JSON，上传后全站图表会同步预览。' : 'Supports CSV / JSON. Uploaded data will refresh previews site-wide.'}</div>
+          <div className="mt-1 text-sm text-slate-500">
+            {language === 'zh' ? '支持 CSV / JSON，上传后全站图表会同步预览。' : 'Supports CSV / JSON. Uploaded data will refresh previews site-wide.'}
+          </div>
         </div>
         <button type="button" onClick={resetUpload} className="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
           {language === 'zh' ? '恢复默认' : 'Reset'}
@@ -49,18 +51,24 @@ export function UploadPanel() {
       <div className="mt-5 grid gap-4 md:grid-cols-2">
         <div className="rounded-[22px] bg-slate-50 px-4 py-4">
           <div className="text-sm text-slate-500">{language === 'zh' ? '当前数据源' : 'Current source'}</div>
-          <div className="mt-2 text-lg font-semibold text-slate-900">{uploadState.source === 'upload' ? uploadState.fileName : language === 'zh' ? '默认样例数据' : 'Built-in default datasets'}</div>
+          <div className="mt-2 text-lg font-semibold text-slate-900">
+            {uploadState.source === 'upload' ? uploadState.fileName : language === 'zh' ? '内置默认数据' : 'Built-in default datasets'}
+          </div>
         </div>
         <div className="rounded-[22px] bg-slate-50 px-4 py-4">
           <div className="text-sm text-slate-500">{language === 'zh' ? '字段摘要' : 'Field summary'}</div>
-          <div className="mt-2 text-lg font-semibold text-slate-900">{uploadState.meta.keys.length} {language === 'zh' ? '个字段' : 'fields'} / {uploadState.meta.numericKeys.length} {language === 'zh' ? '个数值字段' : 'numeric'}</div>
+          <div className="mt-2 text-lg font-semibold text-slate-900">
+            {uploadState.meta.keys.length} {language === 'zh' ? '个字段' : 'fields'} / {uploadState.meta.numericKeys.length} {language === 'zh' ? '个数值字段' : 'numeric'}
+          </div>
         </div>
       </div>
 
       {error ? (
         <div className="mt-4 flex items-center justify-between rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
           <span>{error}</span>
-          <button type="button" onClick={clearError} className="font-semibold">{language === 'zh' ? '关闭' : 'Dismiss'}</button>
+          <button type="button" onClick={clearError} className="font-semibold">
+            {language === 'zh' ? '关闭' : 'Dismiss'}
+          </button>
         </div>
       ) : null}
     </div>

@@ -14,12 +14,18 @@ export function LineChartPreview({ records, xKey, yKey, theme, mode = 'card' }: 
       })),
     [mode, records, xKey, yKey],
   );
+
   const initialInfo = useMemo<HoverInfo>(() => {
     const lastPoint = points[points.length - 1];
-    return { primaryLabel: xKey, primaryValue: toDisplay(lastPoint?.x ?? '—'), secondaryLabel: yKey, secondaryValue: formatMetric(lastPoint?.y ?? 0) };
+    return {
+      primaryLabel: xKey,
+      primaryValue: toDisplay(lastPoint?.x ?? '--'),
+      secondaryLabel: yKey,
+      secondaryValue: formatMetric(lastPoint?.y ?? 0),
+    };
   }, [points, xKey, yKey]);
-  const [info, setInfo] = useState<HoverInfo>(initialInfo);
 
+  const [info, setInfo] = useState<HoverInfo>(initialInfo);
   const width = mode === 'detail' ? 420 : 320;
   const height = mode === 'detail' ? 250 : 180;
   const plotLeft = 46;
@@ -29,16 +35,18 @@ export function LineChartPreview({ records, xKey, yKey, theme, mode = 'card' }: 
   const maxY = Math.max(...points.map((point) => point.y), 1);
   const minY = Math.min(...points.map((point) => point.y), 0);
   const range = maxY - minY || 1;
+
   const mapped = points.map((point, index) => {
     const x = plotLeft + (index / Math.max(points.length - 1, 1)) * plotWidth;
     const y = plotTop + plotHeight - ((point.y - minY) / range) * plotHeight;
     return { ...point, sx: x, sy: y };
   });
+
   const line = mapped.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.sx} ${point.sy}`).join(' ');
   const area = `${line} L ${plotLeft + plotWidth} ${plotTop + plotHeight} L ${plotLeft} ${plotTop + plotHeight} Z`;
 
   return (
-    <PreviewShell title={mode === 'detail' ? '训练趋势' : '训练趋势'} subtitle={`${xKey} × ${yKey}`} badge="hover" theme={theme} mode={mode} info={info}>
+    <PreviewShell title="训练趋势" subtitle={`${xKey} × ${yKey}`} badge="hover" theme={theme} mode={mode} info={info}>
       <svg viewBox={`0 0 ${width} ${height}`} className="h-full w-full">
         <defs>
           <linearGradient id={`line-fill-${mode}`} x1="0" y1="0" x2="0" y2="1">
@@ -65,7 +73,10 @@ export function LineChartPreview({ records, xKey, yKey, theme, mode = 'card' }: 
         {mapped.map((point) => {
           const active = info.primaryValue === toDisplay(point.x);
           return (
-            <g key={`${point.index}-${point.sx}`} onMouseEnter={() => setInfo({ primaryLabel: xKey, primaryValue: toDisplay(point.x), secondaryLabel: yKey, secondaryValue: formatMetric(point.y) })}>
+            <g
+              key={`${point.index}-${point.sx}`}
+              onMouseEnter={() => setInfo({ primaryLabel: xKey, primaryValue: toDisplay(point.x), secondaryLabel: yKey, secondaryValue: formatMetric(point.y) })}
+            >
               <circle cx={point.sx} cy={point.sy} r={active ? 12 : 9} fill={theme.accent} fillOpacity={active ? 0.14 : 0.08} />
               <circle cx={point.sx} cy={point.sy} r={mode === 'detail' ? 6 : 5} fill={theme.panel} stroke={theme.accent} strokeWidth="4" />
             </g>
