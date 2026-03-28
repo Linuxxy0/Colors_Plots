@@ -4,6 +4,21 @@ const AUTO_X_PREFERRED = ['epoch', 'step', 'time', 'date', 'model', 'group', 'ro
 const AUTO_Y_PREFERRED = ['accuracy', 'score', 'f1', 'auc', 'precision', 'recall', 'loss', 'latency'];
 const EMPTY_DISPLAY = '--';
 
+export type SeriesPoint = {
+  x: string;
+  xValue: number;
+  yValue: number;
+  rawX: string | number;
+  rawY: DatasetValue;
+};
+
+export type DatasetSummary = {
+  count: number;
+  latest: number;
+  average: number;
+  delta: number;
+};
+
 export function toNumber(value: DatasetValue): number | null {
   if (typeof value === 'number' && Number.isFinite(value)) return value;
   if (typeof value === 'string') {
@@ -169,6 +184,43 @@ export function getDatasetMeta(records: DatasetRecord[]): DatasetMeta {
 
 export function getNumericValues(records: DatasetRecord[], key: string) {
   return records.map((record) => toNumber(record[key])).filter((value): value is number => value !== null);
+}
+
+export function getSeries(records: DatasetRecord[], xKey: string, yKey: string, limit = records.length): SeriesPoint[] {
+  return records
+    .map((record, index) => {
+      const rawX = record[xKey] ?? index + 1;
+      const rawY = record[yKey];
+      const yValue = toNumber(rawY);
+      if (yValue === null) return null;
+      return {
+        x: toDisplay(rawX),
+        xValue: toNumber(rawX) ?? index + 1,
+        yValue,
+        rawX,
+        rawY,
+      } satisfies SeriesPoint;
+    })
+    .filter((item): item is SeriesPoint => item !== null)
+    .slice(0, Math.max(limit, 0));
+}
+
+export function summarizeDataset(records: DatasetRecord[], yKey: string): DatasetSummary {
+  const values = getNumericValues(records, yKey);
+  if (!values.length) {
+    return { count: records.length, latest: 0, average: 0, delta: 0 };
+  }
+
+  const latest = values[values.length - 1];
+  const previous = values.length > 1 ? values[values.length - 2] : latest;
+  const average = values.reduce((sum, value) => sum + value, 0) / values.length;
+
+  return {
+    count: records.length,
+    latest,
+    average,
+    delta: latest - previous,
+  };
 }
 
 export function percentile(values: number[], p: number) {

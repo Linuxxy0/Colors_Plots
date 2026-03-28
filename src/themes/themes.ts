@@ -1,3 +1,4 @@
+export type { ThemePalette } from '@/types/app';
 import type { ThemePalette } from '@/types/app';
 
 export const themes: ThemePalette[] = [
