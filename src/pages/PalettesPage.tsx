@@ -56,36 +56,34 @@ export function PalettesPage() {
             key={palette.id}
             type="button"
             onClick={() => navigate(`/palettes/${palette.id}`)}
-            className="group rounded-[26px] border transition hover:border-slate-300 hover:shadow-md"
-            style={{ backgroundColor: palette.panel, borderColor: `${palette.muted}33` }}
+            className="group rounded-[28px] border border-slate-200 bg-white overflow-hidden transition hover:border-slate-300 hover:shadow-md text-left"
           >
-            <div className="p-5 text-left transition hover:bg-black/5">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="text-lg font-semibold" style={{ color: palette.foreground }}>{t(palette.name, language)}</div>
-                  <div className="mt-2 text-sm leading-6" style={{ color: palette.muted }}>{t(palette.description, language)}</div>
+            {/* 颜色条纹 */}
+            <div className="flex h-20 overflow-hidden">
+              {palette.palette.map((color) => (
+                <div key={color} className="flex-1" style={{ backgroundColor: color }} />
+              ))}
+            </div>
+
+            {/* 内容 */}
+            <div className="p-5">
+              <div>
+                <div className="text-lg font-semibold text-slate-900">{t(palette.name, language)}</div>
+                <div className="mt-1 text-xs text-slate-500">
+                  {palette.palette.length} {language === 'zh' ? '种颜色' : 'colors'} • {palette.tags.length} {language === 'zh' ? '个标签' : 'tags'}
                 </div>
-                <div className="rounded-full border px-3 py-1 text-xs font-medium" style={{ borderColor: `${palette.muted}33`, color: palette.muted }}>{t(palette.usage, language)}</div>
               </div>
-              <div className="mt-5 flex gap-2">
-                {palette.palette.map((color) => (
-                  <div key={color} className="h-12 flex-1 rounded-2xl" style={{ backgroundColor: color }} />
-                ))}
-              </div>
-              <div className="mt-5 flex flex-wrap gap-2">
+
+              <div className="mt-4 flex flex-wrap gap-1.5">
                 {palette.tags.map((tag) => (
-                  <span key={tag.en} className="rounded-full border px-3 py-1 text-xs" style={{ borderColor: `${palette.muted}25`, color: palette.muted }}>
+                  <span key={tag.en} className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
                     {t(tag, language)}
                   </span>
                 ))}
               </div>
-              <div className="mt-5">
-                <div
-                  className="w-full rounded-2xl px-4 py-2 text-center font-semibold transition"
-                  style={{ backgroundColor: palette.accent, color: palette.background }}
-                >
-                  {language === 'zh' ? '查看详情' : 'View details'}
-                </div>
+
+              <div className="mt-4 text-sm text-slate-700">
+                {t(palette.usage, language)}
               </div>
             </div>
           </button>

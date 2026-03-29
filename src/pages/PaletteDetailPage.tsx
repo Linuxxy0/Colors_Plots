@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { PalettePreviewPanel } from '@/components/palettes/PalettePreviewPanel';
+import React from 'react';
 import { useAppContext } from '@/context/AppContext';
 import { themes } from '@/themes/themes';
 import { t } from '@/utils/i18n';
@@ -8,8 +8,15 @@ export function PaletteDetailPage() {
   const { language } = useAppContext();
   const navigate = useNavigate();
   const { paletteId } = useParams<{ paletteId: string }>();
+  const [copied, setCopied] = React.useState<string | null>(null);
 
   const palette = themes.find((p) => p.id === paletteId);
+
+  const copyToClipboard = (color: string) => {
+    navigator.clipboard.writeText(color);
+    setCopied(color);
+    setTimeout(() => setCopied(null), 2000);
+  };
 
   if (!palette) {
     return (
@@ -29,52 +36,82 @@ export function PaletteDetailPage() {
 
   return (
     <div className="page-shell py-8">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <button
-            onClick={() => navigate('/palettes')}
-            className="text-sm text-slate-500 transition hover:text-slate-900"
-          >
-            ← {language === 'zh' ? '返回配色库' : 'Back to palettes'}
-          </button>
-          <h1 className="mt-4 text-4xl font-semibold text-slate-900">{t(palette.name, language)}</h1>
-          <p className="mt-2 max-w-3xl text-base leading-7 text-slate-600">{t(palette.description, language)}</p>
-        </div>
-      </div>
+      <button
+        onClick={() => navigate('/palettes')}
+        className="mb-6 text-sm font-medium text-slate-500 transition hover:text-slate-900"
+      >
+        ← {language === 'zh' ? '返回配色库' : 'Back to palettes'}
+      </button>
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_300px]">
-        <div className="rounded-[36px] border border-slate-200 bg-white p-8 shadow-[0_20px_60px_rgba(15,23,42,0.05)]">
-          <PalettePreviewPanel theme={palette} />
+      <div className="rounded-[32px] bg-white overflow-hidden border border-slate-200 shadow-[0_20px_60px_rgba(15,23,42,0.05)]">
+        {/* 颜色条纹顶部 */}
+        <div className="flex h-32 overflow-hidden rounded-t-[32px]">
+          {palette.palette.map((color) => (
+            <div key={color} className="flex-1" style={{ backgroundColor: color }} />
+          ))}
         </div>
 
-        <div className="space-y-4">
-          <div className="rounded-[24px] border border-slate-200 bg-white p-5">
-            <div className="text-sm font-medium text-slate-500">{language === 'zh' ? '用途' : 'Usage'}</div>
-            <div className="mt-3 text-lg font-semibold text-slate-900">{t(palette.usage, language)}</div>
+        <div className="p-8">
+          {/* 标题和描述 */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-semibold text-slate-900">{t(palette.name, language)}</h1>
+            <p className="mt-3 max-w-3xl text-base leading-7 text-slate-600">
+              {t(palette.description, language)}
+            </p>
           </div>
 
-          <div className="rounded-[24px] border border-slate-200 bg-white p-5">
-            <div className="text-sm font-medium text-slate-500">{language === 'zh' ? '标签' : 'Tags'}</div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {palette.tags.map((tag) => (
-                <span
-                  key={tag.en}
-                  className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600"
-                >
-                  {t(tag, language)}
-                </span>
-              ))}
+          <div className="grid gap-6 lg:grid-cols-3">
+            {/* 用途 */}
+            <div>
+              <div className="text-sm font-medium text-slate-500">{language === 'zh' ? '用途' : 'Usage'}</div>
+              <div className="mt-3 text-base font-medium text-slate-900">{t(palette.usage, language)}</div>
+            </div>
+
+            {/* 颜色数量 */}
+            <div>
+              <div className="text-sm font-medium text-slate-500">{language === 'zh' ? '颜色数' : 'Colors'}</div>
+              <div className="mt-3 text-base font-medium text-slate-900">{palette.palette.length}</div>
+            </div>
+
+            {/* 标签 */}
+            <div>
+              <div className="text-sm font-medium text-slate-500">{language === 'zh' ? '标签' : 'Tags'}</div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {palette.tags.map((tag) => (
+                  <span
+                    key={tag.en}
+                    className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600"
+                  >
+                    {t(tag, language)}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
 
-          <div className="rounded-[24px] border border-slate-200 bg-white p-5">
-            <div className="text-sm font-medium text-slate-500">{language === 'zh' ? '调色板' : 'Palette'}</div>
-            <div className="mt-3 flex flex-col gap-2">
-              {palette.palette.map((color, index) => (
-                <div key={color} className="flex items-center gap-3">
-                  <div className="h-8 w-12 flex-shrink-0 rounded" style={{ backgroundColor: color }} />
-                  <code className="text-xs font-mono text-slate-600">{color}</code>
-                </div>
+          {/* 颜色代码列表 */}
+          <div className="mt-8 border-t border-slate-200 pt-8">
+            <div className="mb-4 text-sm font-medium text-slate-500">
+              {language === 'zh' ? '颜色代码 (点击复制)' : 'Color codes (click to copy)'}
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {palette.palette.map((color) => (
+                <button
+                  key={color}
+                  onClick={() => copyToClipboard(color)}
+                  className="group flex items-center gap-3 rounded-[16px] border border-slate-200 p-3 transition hover:bg-slate-50"
+                >
+                  <div
+                    className="h-10 w-10 flex-shrink-0 rounded border border-slate-200"
+                    style={{ backgroundColor: color }}
+                  />
+                  <code className="flex-1 text-left text-sm font-mono text-slate-600 group-hover:text-slate-900">
+                    {color}
+                  </code>
+                  {copied === color && (
+                    <span className="text-xs text-emerald-600 font-medium">✓</span>
+                  )}
+                </button>
               ))}
             </div>
           </div>
