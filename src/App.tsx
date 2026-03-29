@@ -2,7 +2,9 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { TopNav } from '@/components/layout/TopNav';
 import { HomePage } from '@/pages/HomePage';
 import { PalettesPage } from '@/pages/PalettesPage';
+import { PaletteDetailPage } from '@/pages/PaletteDetailPage';
 import { ChartsPage } from '@/pages/ChartsPage';
+import { ChartDetailPage } from '@/pages/ChartDetailPage';
 import { PlaygroundPage } from '@/pages/PlaygroundPage';
 import { useAppContext } from '@/context/AppContext';
 
@@ -21,7 +23,9 @@ export default function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/palettes" element={<PalettesPage />} />
+        <Route path="/palettes/:paletteId" element={<PaletteDetailPage />} />
         <Route path="/charts" element={<ChartsPage />} />
+        <Route path="/charts/:chartId" element={<ChartDetailPage />} />
         <Route path="/playground" element={<PlaygroundPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

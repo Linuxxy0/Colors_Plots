@@ -1,14 +1,14 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ChartPreview } from '@/components/charts';
 import { useAppContext } from '@/context/AppContext';
 import { chartDefinitions } from '@/data/library';
-import type { ChartKind } from '@/types/app';
 import { t } from '@/utils/i18n';
 
 export function ChartsPage() {
   const { language, currentTheme, getChartDataset } = useAppContext();
+  const navigate = useNavigate();
   const [query, setQuery] = useState('');
-  const [detailId, setDetailId] = useState<ChartKind | null>(null);
 
   const filteredCharts = useMemo(
     () =>
@@ -71,7 +71,7 @@ export function ChartsPage() {
                 <span className="text-slate-500">{t(chart.fieldRequirement, language)}</span>
                 <button 
                   type="button" 
-                  onClick={() => setDetailId(chart.id)}
+                  onClick={() => navigate(`/charts/${chart.id}`)}
                   className="rounded-2xl bg-slate-900 px-4 py-2 font-semibold text-white transition hover:bg-slate-800"
                 >
                   {language === 'zh' ? '查看详情' : 'Details'}
@@ -81,89 +81,6 @@ export function ChartsPage() {
           );
         })}
       </div>
-
-      {detailId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setDetailId(null)}>
-          <div 
-            className="w-full max-w-4xl max-h-[90vh] bg-white rounded-[36px] p-8 overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {(() => {
-              const detail = chartDefinitions.find(c => c.id === detailId);
-              if (!detail) return null;
-              const detailDataset = getChartDataset(detail.id);
-              return (
-                <>
-                  <div className="flex items-start justify-between gap-4 mb-6">
-                    <div className="flex-1">
-                      <div className="text-sm font-medium text-slate-500">{language === 'zh' ? '图表详情' : 'Chart details'}</div>
-                      <h2 className="mt-2 text-4xl font-semibold text-slate-900">{t(detail.title, language)}</h2>
-                      <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">{t(detail.description, language)}</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setDetailId(null)}
-                      className="text-slate-400 hover:text-slate-600 transition text-2xl"
-                    >
-                      ✕
-                    </button>
-                  </div>
-
-                  <div className="mt-6 grid gap-3 md:grid-cols-3 mb-6">
-                    <div className="rounded-[24px] bg-slate-50 p-5">
-                      <div className="text-sm font-medium text-slate-500">{language === 'zh' ? '数据来源' : 'Data source'}</div>
-                      <div className="mt-3 text-lg font-semibold text-slate-900">
-                        {detailDataset.source === 'upload' ? (language === 'zh' ? '上传数据' : 'Uploaded dataset') : language === 'zh' ? '默认样例' : 'Built-in sample'}
-                      </div>
-                      <div className="mt-2 text-sm text-slate-500">
-                        {detailDataset.source === 'upload' ? detailDataset.fileName : language === 'zh' ? '为当前图表单独准备' : 'Prepared specifically for this chart'}
-                      </div>
-                    </div>
-                    <div className="rounded-[24px] bg-slate-50 p-5">
-                      <div className="text-sm font-medium text-slate-500">{language === 'zh' ? '字段组合' : 'Field mapping'}</div>
-                      <div className="mt-3 text-lg font-semibold text-slate-900">
-                        {detailDataset.xKey} / {detailDataset.yKey}
-                      </div>
-                      <div className="mt-2 text-sm text-slate-500">{t(detail.fieldRequirement, language)}</div>
-                    </div>
-                    <div className="rounded-[24px] bg-slate-50 p-5">
-                      <div className="text-sm font-medium text-slate-500">{language === 'zh' ? '适用场景' : 'Use cases'}</div>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {detail.useCases.map((item) => (
-                          <span key={item.en} className="rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-500">
-                            {t(item, language)}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 rounded-[24px] border border-slate-200 bg-slate-50 px-5 py-4 text-sm text-slate-500">
-                    {detailDataset.source === 'upload'
-                      ? language === 'zh'
-                        ? `当前正在使用你上传的数据：${detailDataset.fileName}`
-                        : `Currently using your uploaded dataset: ${detailDataset.fileName}`
-                      : language === 'zh'
-                        ? '当前使用的是为该图表单独准备的默认样例数据。把鼠标放到图元上，下面的数值会立即变化。'
-                        : 'Currently using a built-in sample dataset for this chart. Hover the chart marks to update the values below.'}
-                  </div>
-
-                  <div className="mt-6 rounded-[24px] border border-slate-200 bg-white p-6 min-h-[400px]">
-                    <ChartPreview
-                      chartId={detail.id}
-                      records={detailDataset.records}
-                      xKey={detailDataset.xKey}
-                      yKey={detailDataset.yKey}
-                      theme={currentTheme}
-                      mode="detail"
-                    />
-                  </div>
-                </>
-              );
-            })()}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
