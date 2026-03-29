@@ -1,4 +1,6 @@
-export function PageIntro({ eyebrow, title, description, actions }: { eyebrow: string; title: string; description: string; actions?: React.ReactNode }) {
+import type { ReactNode } from 'react';
+
+export function PageIntro({ eyebrow, title, description, actions }: { eyebrow: string; title: string; description: string; actions?: ReactNode }) {
   return (
     <section className="rounded-[28px] border border-slate-200/80 bg-white/88 p-8 shadow-soft backdrop-blur sm:p-10">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
