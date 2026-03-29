@@ -9,81 +9,132 @@ export function HomePage() {
   const previewCharts = chartDefinitions.slice(0, 3);
 
   return (
-    <div className="page-shell py-8">
-      <section className="grid gap-6 xl:grid-cols-[1fr_1.25fr]">
-        <div className="rounded-[32px] border border-slate-200 bg-white p-8 shadow-[0_20px_60px_rgba(15,23,42,0.05)]">
-          <div className="inline-flex rounded-full border border-slate-200 px-3 py-1 text-xs font-medium tracking-[0.18em] text-slate-500">
-            {language === 'zh' ? '科研配色库与图表预览' : 'Academic palette & chart library'}
+    <div className="page-shell py-12">
+      {/* 标题区域 */}
+      <div className="mb-12 max-w-4xl">
+        <h1 className="text-5xl font-semibold tracking-tight text-slate-900">
+          {language === 'zh' ? 'SciVizLab' : 'SciVizLab'}
+        </h1>
+        <p className="mt-4 text-xl text-slate-600">
+          {language === 'zh' 
+            ? '一个为科研工作者设计的可视化工具库'
+            : 'A visualization toolkit designed for researchers'}
+        </p>
+      </div>
+
+      {/* 快速导航与统计 */}
+      <div className="mb-12 grid gap-6 lg:grid-cols-[1fr_1.2fr]">
+        <div>
+          <div className="mb-4 text-sm font-medium text-slate-500">
+            {language === 'zh' ? '快速开始' : 'Quick start'}
           </div>
-          <h1 className="mt-5 text-5xl font-semibold tracking-tight text-slate-900">
-            {language === 'zh' ? '像资源库一样清晰的科研可视化主页' : 'A library-style home for research visualization'}
-          </h1>
-          <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600">
-            {language === 'zh'
-              ? '首页只作为入口，真正的配色浏览、图表预览和数据实验都拆分为独立页面。默认中文，可一键切换英文。'
-              : 'The home page is only an entry. Palette browsing, chart preview, and dataset playground are split into dedicated pages with instant language switching.'}
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link to="/palettes" className="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800">
-              {language === 'zh' ? '进入配色库' : 'Open palettes'}
+          <div className="flex flex-wrap gap-3">
+            <Link 
+              to="/palettes" 
+              className="rounded-2xl bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800"
+            >
+              {language === 'zh' ? '配色库' : 'Palettes'}
             </Link>
-            <Link to="/charts" className="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">
-              {language === 'zh' ? '进入图表库' : 'Open charts'}
+            <Link 
+              to="/charts" 
+              className="rounded-2xl border border-slate-200 px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+            >
+              {language === 'zh' ? '图表库' : 'Charts'}
             </Link>
-            <Link to="/playground" className="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">
-              {language === 'zh' ? '进入实验台' : 'Open playground'}
+            <Link 
+              to="/playground" 
+              className="rounded-2xl border border-slate-200 px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+            >
+              {language === 'zh' ? '数据实验' : 'Playground'}
             </Link>
-          </div>
-          <div className="mt-10 grid gap-4 md:grid-cols-3">
-            {homeStats.map((item) => (
-              <div key={item.value} className="rounded-[24px] bg-slate-50 p-4">
-                <div className="text-sm text-slate-500">{t(item.title, language)}</div>
-                <div className="mt-2 text-2xl font-semibold text-slate-900">{item.value}</div>
-              </div>
-            ))}
           </div>
         </div>
 
-        <div className="grid gap-5 lg:grid-cols-3">
+        <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
+          <div className="text-sm text-slate-500">{language === 'zh' ? '当前数据' : 'Current dataset'}</div>
+          <div className="mt-2 font-medium text-slate-900">
+            {uploadState.source === 'upload' ? uploadState.fileName : language === 'zh' ? '系统内置样例' : 'Built-in samples'}
+          </div>
+        </div>
+      </div>
+
+      {/* 图表预览 */}
+      <div className="mb-12">
+        <div className="mb-6 text-sm font-medium text-slate-500">
+          {language === 'zh' ? '图表示例' : 'Chart examples'}
+        </div>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {previewCharts.map((chart) => {
             const dataset = getChartDataset(chart.id);
             return (
-              <div key={chart.id} className="rounded-[30px] border border-slate-200 bg-white p-5 shadow-[0_20px_60px_rgba(15,23,42,0.05)]">
-                <div className="mb-4 flex items-center justify-between">
-                  <div>
-                    <div className="text-2xl font-semibold text-slate-900">{t(chart.title, language)}</div>
-                    <div className="mt-1 text-sm text-slate-500">{t(chart.description, language)}</div>
+              <Link 
+                key={chart.id}
+                to="/charts"
+                className="group rounded-[24px] border border-slate-200 bg-white p-5 transition hover:border-slate-300 hover:shadow-md"
+              >
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div className="flex-1">
+                    <div className="font-medium text-slate-900">{t(chart.title, language)}</div>
+                    <div className="mt-1 text-xs text-slate-500">{t(chart.description, language)}</div>
                   </div>
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">{t(chart.tag, language)}</span>
+                  <span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-500 flex-shrink-0">
+                    {t(chart.tag, language)}
+                  </span>
                 </div>
-                <ChartPreview chartId={chart.id} records={dataset.records} xKey={dataset.xKey} yKey={dataset.yKey} theme={currentTheme} mode="card" />
-              </div>
+                <div className="rounded-[16px] border border-slate-200 bg-slate-50 p-3 h-32">
+                  <ChartPreview 
+                    chartId={chart.id} 
+                    records={dataset.records} 
+                    xKey={dataset.xKey} 
+                    yKey={dataset.yKey} 
+                    theme={currentTheme} 
+                    mode="card" 
+                  />
+                </div>
+              </Link>
             );
           })}
         </div>
-      </section>
+      </div>
 
-      <section className="mt-8 grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-        <div className="rounded-[32px] border border-slate-200 bg-white p-7 shadow-[0_20px_60px_rgba(15,23,42,0.05)]">
-          <div className="text-sm font-medium text-slate-500">{language === 'zh' ? '当前状态' : 'Current status'}</div>
-          <div className="mt-3 text-3xl font-semibold text-slate-900">
-            {uploadState.source === 'upload' ? uploadState.fileName : language === 'zh' ? '当前使用内置默认数据' : 'Using built-in default datasets'}
+      {/* 功能介绍 */}
+      <div className="border-t border-slate-200 pt-12">
+        <div className="mb-6 text-sm font-medium text-slate-500">
+          {language === 'zh' ? '功能与特点' : 'Features'}
+        </div>
+        <div className="grid gap-8 md:grid-cols-3">
+          <div>
+            <div className="font-medium text-slate-900">
+              {language === 'zh' ? '精选配色' : 'Curated Palettes'}
+            </div>
+            <p className="mt-2 text-sm text-slate-600">
+              {language === 'zh'
+                ? '为学术出版设计的高质量色板, 适配Nature、Science等顶级期刊'
+                : 'High-quality color palettes designed for academic publishing'}
+            </p>
           </div>
-          <p className="mt-4 max-w-3xl text-base leading-7 text-slate-600">
-            {language === 'zh'
-              ? '不同图表在默认状态下会使用更合适的样例数据；上传数据后，图表库和实验台都会同步切换到你的数据。'
-              : 'Each chart uses a more suitable built-in dataset by default. After upload, the chart library and playground switch to your data together.'}
-          </p>
+          <div>
+            <div className="font-medium text-slate-900">
+              {language === 'zh' ? '丰富图表' : 'Chart Library'}
+            </div>
+            <p className="mt-2 text-sm text-slate-600">
+              {language === 'zh'
+                ? '常用的科研可视化图表, 开箱即用的交互体验'
+                : 'Common research visualization charts with built-in interaction'}
+            </p>
+          </div>
+          <div>
+            <div className="font-medium text-slate-900">
+              {language === 'zh' ? '数据实验' : 'Data Playground'}
+            </div>
+            <p className="mt-2 text-sm text-slate-600">
+              {language === 'zh'
+                ? '快速上传和预览数据, 无需编码即可生成可视化'
+                : 'Upload and visualize data instantly without coding'}
+            </p>
+          </div>
         </div>
-        <div className="rounded-[32px] border border-slate-200 bg-white p-7 shadow-[0_20px_60px_rgba(15,23,42,0.05)]">
-          <div className="text-sm font-medium text-slate-500">{language === 'zh' ? '项目风格' : 'Project style'}</div>
-          <ul className="mt-4 space-y-3 text-base leading-7 text-slate-700">
-            <li>{language === 'zh' ? '首页只做入口，不再承担宣传页职责。' : 'Home is only an entry point, not a marketing page.'}</li>
-            <li>{language === 'zh' ? '配色页强调真实主题预览，而不是图表动效。' : 'The palettes page focuses on real theme preview, not chart motion.'}</li>
-            <li>{language === 'zh' ? '图表交互以悬停反馈为主，轻量但足够直观。' : 'Chart interaction is driven by hover-based dynamic feedback.'}</li>
-          </ul>
-        </div>
-      </section>
+      </div>
     </div>
   );
 }
