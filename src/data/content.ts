@@ -31,6 +31,24 @@ export const chartCards = [];
 
 export const useCases = [];
 
+export const docsColumns = [
+  {
+    title: 'Docs',
+    button: 'Open Docs',
+    items: ['Installation', 'Theme System', 'Dataset Loader', 'Chart API'],
+  },
+  {
+    title: 'Contribution',
+    button: 'Contribute',
+    items: ['Code Style', 'Pull Request Guide', 'Issue Templates', 'Release Checklist'],
+  },
+  {
+    title: 'Roadmap',
+    button: 'See Plan',
+    items: ['More Chart Types', 'Theme Toggle', 'Dataset Mapping', 'PNG/SVG Export'],
+  },
+];
+
 export const quickStartCode = `// 所有图表组件已被删除
 // 等待新的实现`;
 
