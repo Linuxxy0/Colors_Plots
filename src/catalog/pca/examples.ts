@@ -1,0 +1,53 @@
+import type { ExampleMeta } from "../../types";
+import { buildDatasetA, buildDatasetB, buildDatasetC, buildDatasetD } from "./data";
+
+export const pcaExamples: ExampleMeta[] = [
+  {
+    key: "pca-basic",
+    categoryId: "pca",
+    title: "基础 PCA 散点图",
+    badge: "PCA-01",
+    description: "最简版交互式 PCA 图，适合用于展示样本分布和基础聚类趋势。",
+    styleTags: ["散点", "基础版", "最小示例"],
+    chartType: "pca",
+    points: buildDatasetA(),
+    defaultRegions: false,
+    defaultLabels: false,
+  },
+  {
+    key: "pca-regions",
+    categoryId: "pca",
+    title: "带分组区域的 PCA 图",
+    badge: "PCA-02",
+    description: "通过半透明分组区域展示聚类范围，适合替代静态期刊图中的背景包络。",
+    styleTags: ["分组区域", "聚类范围", "论文风格"],
+    chartType: "pca",
+    points: buildDatasetB(),
+    defaultRegions: true,
+    defaultLabels: false,
+  },
+  {
+    key: "pca-markers",
+    categoryId: "pca",
+    title: "带 Marker 分类的 PCA 图",
+    badge: "PCA-03",
+    description: "颜色表示主分组，点形状表示子类，适合展示不同亚型或实验阶段。",
+    styleTags: ["Marker", "分组映射", "子类编码"],
+    chartType: "pca",
+    points: buildDatasetC(),
+    defaultRegions: true,
+    defaultLabels: false,
+  },
+  {
+    key: "pca-full",
+    categoryId: "pca",
+    title: "完整论文风格 PCA 图",
+    badge: "PCA-04",
+    description: "重点样本使用编号气泡加下方说明列表，避免标签文本覆盖数据点。",
+    styleTags: ["重点标注", "编号说明", "论文复刻"],
+    chartType: "pca",
+    points: buildDatasetD(),
+    defaultRegions: true,
+    defaultLabels: true,
+  },
+];
