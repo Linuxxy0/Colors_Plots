@@ -1,6 +1,6 @@
-// 所有图表已删除
+export { ChartPreview } from './ChartPreview';
 
-export const ChartPreview = null;
+// 所有其他图表组件已删除
 export const BarChartCard = null;
 export const BoxPlotCard = null;
 export const HeatmapCard = null;
